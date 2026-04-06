@@ -3058,176 +3058,159 @@
 
     {% if not subscription_active %}
     <!-- Modal Paiement Dashboard -->
-    <!-- ═══════════════════════════════════════════════════════
-         MODAL PAIEMENT — layout 100% JS, aucune unité CSS relative
-         Raison : vh/dvh/flex+scroll sont non fiables sur Android
-         ═══════════════════════════════════════════════════════ -->
+    <!-- MODAL PAIEMENT
+         Architecture : bouton position:fixed en bas → impossible à pousser hors écran
+         Zone de scroll : position:fixed avec top/bottom explicites en pixels -->
     <div id="modal-payment-dashboard"
-         style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9999; overflow:hidden;"
+         style="display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+                background:rgba(0,0,0,0.6); z-index:9999;"
          onclick="closePaymentModal()">
 
-        <!-- Carte : position absolute dans l'overlay fixed
-             PAS de overflow:hidden (bloque scroll tactile Android)
-             Hauteur en px fixée par JS à l'ouverture -->
-        <div id="payment-card"
-             style="position:absolute; bottom:0; left:0; right:0;
+        {% if not has_pending_payment %}
+        <!-- BOUTON : position:fixed absolu en bas — TOUJOURS visible, impossible à cacher -->
+        <div id="pay-footer"
+             style="position:fixed; bottom:0; left:0; right:0; z-index:10001;
+                    background:white; padding:12px 20px 16px;
+                    border-top:1px solid #e5e7eb;"
+             onclick="event.stopPropagation()">
+            <button type="submit" form="payment-form-dash" id="submit-payment-dash"
+                    style="width:100%; background:linear-gradient(135deg,#7C3AED,#6366f1);
+                           color:white; border:none; padding:14px; border-radius:12px;
+                           font-size:1rem; font-weight:700; cursor:pointer;
+                           touch-action:manipulation;">
+                📤 Envoyer ma demande
+            </button>
+        </div>
+        {% endif %}
+
+        <!-- ZONE SCROLLABLE : position:fixed, bottom réservé au bouton -->
+        <div id="pay-scroll"
+             style="position:fixed; top:8%; left:0; right:0; bottom:68px;
                     background:white; border-radius:16px 16px 0 0;
-                    box-shadow:0 -8px 30px rgba(0,0,0,0.25);"
+                    overflow-y:scroll; -webkit-overflow-scrolling:touch;
+                    overscroll-behavior:contain;"
              onclick="event.stopPropagation()">
 
-            <!-- HEADER fixe -->
-            <div id="payment-modal-header"
-                 style="padding:1.2rem 1.5rem 0.8rem; border-bottom:1px solid #f0f0f0; position:relative; background:white; border-radius:16px 16px 0 0;">
+            <!-- En-tête -->
+            <div style="padding:1.1rem 1.4rem 0.8rem; border-bottom:1px solid #f0f0f0;
+                        position:sticky; top:0; background:white; z-index:10;
+                        border-radius:16px 16px 0 0;">
                 <button onclick="closePaymentModal()"
-                        style="position:absolute; top:10px; right:14px; background:none; border:none;
-                               font-size:1.4rem; cursor:pointer; color:#666; padding:6px; line-height:1;
-                               touch-action:manipulation; -webkit-tap-highlight-color:transparent;">✕</button>
-                <h3 style="color:#7C3AED; margin:0 0 0.2rem; text-align:center; font-size:1.05rem;">🎓 Abonnement Étude LINE</h3>
-                <p style="text-align:center; color:#6b7280; margin:0; font-size:0.82rem;">Accédez aux exercices et solutions de votre filière</p>
+                        style="position:absolute; top:10px; right:14px; background:none;
+                               border:none; font-size:1.4rem; cursor:pointer; color:#666;
+                               padding:6px; touch-action:manipulation;">✕</button>
+                <h3 style="color:#7C3AED; margin:0 0 0.15rem; text-align:center; font-size:1.05rem;">
+                    🎓 Abonnement Étude LINE
+                </h3>
+                <p style="text-align:center; color:#6b7280; margin:0; font-size:0.82rem;">
+                    Accédez aux exercices et solutions de votre filière
+                </p>
             </div>
 
-            <!-- BODY : scroll natif — hauteur en px fixée par JS -->
-            <div id="payment-modal-body"
-                 style="overflow-y:scroll; -webkit-overflow-scrolling:touch;
-                        overscroll-behavior:contain; padding:1.1rem 1.4rem;">
+            <!-- Contenu scrollable -->
+            <div style="padding:1rem 1.4rem 1.5rem;">
 
-                <div style="background:linear-gradient(135deg,#7C3AED,#6366f1); border-radius:12px; padding:0.8rem; text-align:center; margin-bottom:0.9rem; color:white;">
+                <div style="background:linear-gradient(135deg,#7C3AED,#6366f1); border-radius:12px;
+                            padding:0.8rem; text-align:center; margin-bottom:0.9rem; color:white;">
                     <div style="font-size:1.7rem; font-weight:800;">490 FCFA</div>
                     <div style="font-size:0.83rem; opacity:0.9;">pendant 2 mois (60 jours)</div>
                 </div>
 
                 {% if has_pending_payment %}
-                    <div style="background:#fefce8; border:1px solid #fbbf24; border-radius:10px; padding:0.8rem 1.1rem; text-align:center; margin-bottom:0.9rem;">
-                        🟡 <strong>Demande en attente de validation</strong><br>
-                        <small style="color:#92400e;">L'administrateur va vérifier votre paiement sous peu.</small>
-                    </div>
+                <div style="background:#fefce8; border:1px solid #fbbf24; border-radius:10px;
+                            padding:0.8rem; text-align:center; margin-bottom:0.9rem;">
+                    🟡 <strong>Demande en attente de validation</strong><br>
+                    <small style="color:#92400e;">L'administrateur va vérifier votre paiement sous peu.</small>
+                </div>
                 {% elif last_payment_status == "rejected" %}
-                    <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:0.8rem 1.1rem; text-align:center; margin-bottom:0.9rem;">
-                        🔴 <strong>Demande refusée</strong><br>
-                        <small style="color:#991b1b;">Vous pouvez soumettre une nouvelle demande ci-dessous.</small>
-                    </div>
+                <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px;
+                            padding:0.8rem; text-align:center; margin-bottom:0.9rem;">
+                    🔴 <strong>Demande refusée</strong><br>
+                    <small style="color:#991b1b;">Vous pouvez soumettre une nouvelle demande ci-dessous.</small>
+                </div>
                 {% endif %}
 
                 {% if not has_pending_payment %}
                 <form action="/payments/request" method="post" enctype="multipart/form-data" id="payment-form-dash">
-                    <p style="font-weight:600; color:#374151; margin:0 0 0.4rem;">Méthode de paiement :</p>
+
+                    <p style="font-weight:600; color:#374151; margin:0 0 0.5rem;">Méthode de paiement :</p>
                     <div style="display:flex; gap:0.75rem; margin-bottom:0.9rem;">
                         <label style="flex:1; cursor:pointer;">
-                            <input type="radio" name="payment_method" value="orange" required style="display:none;" onchange="selectMethodDash('orange')">
-                            <div id="dash-btn-orange" style="border:2px solid #e5e7eb; border-radius:10px; padding:0.65rem; text-align:center;">
+                            <input type="radio" name="payment_method" value="orange" required
+                                   style="display:none;" onchange="selectMethodDash('orange')">
+                            <div id="dash-btn-orange"
+                                 style="border:2px solid #e5e7eb; border-radius:10px;
+                                        padding:0.65rem; text-align:center;">
                                 🟠<br><strong style="font-size:0.9rem;">Orange Money</strong>
                             </div>
                         </label>
                         <label style="flex:1; cursor:pointer;">
-                            <input type="radio" name="payment_method" value="wave" required style="display:none;" onchange="selectMethodDash('wave')">
-                            <div id="dash-btn-wave" style="border:2px solid #e5e7eb; border-radius:10px; padding:0.65rem; text-align:center;">
+                            <input type="radio" name="payment_method" value="wave" required
+                                   style="display:none;" onchange="selectMethodDash('wave')">
+                            <div id="dash-btn-wave"
+                                 style="border:2px solid #e5e7eb; border-radius:10px;
+                                        padding:0.65rem; text-align:center;">
                                 🔵<br><strong style="font-size:0.9rem;">Wave</strong>
                             </div>
                         </label>
                     </div>
 
-                    <div style="background:#f3f4f6; border-radius:10px; padding:0.8rem; margin-bottom:0.9rem; text-align:center;">
-                        <p style="margin:0 0 0.2rem; color:#374151; font-size:0.88rem;">Envoyez <strong>490 FCFA</strong> au :</p>
-                        <p style="margin:0 0 0.2rem; font-size:1.25rem; font-weight:700; color:#111;">775 77 14 43</p>
-                        <p style="margin:0; color:#6b7280; font-size:0.82rem;">Nom : <strong>ELN Technologies</strong></p>
+                    <div style="background:#f3f4f6; border-radius:10px; padding:0.8rem;
+                                margin-bottom:0.9rem; text-align:center;">
+                        <p style="margin:0 0 0.2rem; color:#374151; font-size:0.88rem;">
+                            Envoyez <strong>490 FCFA</strong> au :
+                        </p>
+                        <p style="margin:0 0 0.2rem; font-size:1.25rem; font-weight:700; color:#111;">
+                            775 77 14 43
+                        </p>
+                        <p style="margin:0; color:#6b7280; font-size:0.82rem;">
+                            Nom : <strong>ELN Technologies</strong>
+                        </p>
                     </div>
 
-                    <p style="font-weight:600; color:#374151; margin:0 0 0.4rem;">Capture d'écran de la confirmation :</p>
+                    <p style="font-weight:600; color:#374151; margin:0 0 0.4rem;">
+                        Capture d'écran de la confirmation :
+                    </p>
                     <input type="file" name="proof_image" accept="image/*" required
-                           style="width:100%; border:2px dashed #c084fc; border-radius:8px; padding:0.45rem;
-                                  font-size:0.88rem; cursor:pointer; box-sizing:border-box;"
+                           style="width:100%; border:2px dashed #c084fc; border-radius:8px;
+                                  padding:0.45rem; font-size:0.88rem; cursor:pointer;
+                                  box-sizing:border-box;"
                            onchange="previewProofDash(this)">
 
-                    <!-- Image FIXE à 100px — ne gonfle jamais -->
+                    <!-- Aperçu : hauteur fixe 90px, ne peut pas grandir -->
                     <div id="proof-preview-dash" style="display:none; margin-top:0.6rem;">
                         <img id="proof-img-dash"
-                             style="display:block; width:100%; height:100px;
+                             style="display:block; width:100%; height:90px;
                                     object-fit:contain; border-radius:8px; background:#f5f5f5;">
                     </div>
-                    <p style="color:#9ca3af; font-size:0.72rem; margin:0.3rem 0 0.8rem;">Formats : JPG, PNG, WEBP — Max 5 Mo</p>
+                    <p style="color:#9ca3af; font-size:0.72rem; margin:0.3rem 0 0;">
+                        Formats : JPG, PNG, WEBP — Max 5 Mo
+                    </p>
+
                 </form>
                 {% endif %}
             </div>
-
-            <!-- FOOTER collé en bas de la carte -->
-            {% if not has_pending_payment %}
-            <div id="payment-modal-footer"
-                 style="padding:0.9rem 1.4rem; border-top:1px solid #f0f0f0; background:white;">
-                <button type="submit" form="payment-form-dash" id="submit-payment-dash"
-                        style="width:100%; background:linear-gradient(135deg,#7C3AED,#6366f1);
-                               color:white; border:none; padding:0.85rem; border-radius:10px;
-                               font-size:1rem; font-weight:700; cursor:pointer;
-                               touch-action:manipulation; -webkit-tap-highlight-color:transparent;">
-                    📤 Envoyer ma demande
-                </button>
-            </div>
-            {% endif %}
         </div>
     </div>
 
     <script>
-    /* ════════════════════════════════════════════════════════
-       MODAL PAIEMENT — Layout 100% JavaScript
-       Hauteurs calculées en pixels réels (window.innerHeight)
-       ════════════════════════════════════════════════════════ */
-
-    function calcPaymentLayout() {
-        var card   = document.getElementById('payment-card');
-        var header = document.getElementById('payment-modal-header');
-        var footer = document.getElementById('payment-modal-footer');
-        var body   = document.getElementById('payment-modal-body');
-        if (!card || !body) return;
-
-        /* window.innerHeight = hauteur visible réelle (Android respecte cette valeur) */
-        var vh     = window.innerHeight;
-        var cardH  = Math.floor(vh * 0.88);   /* 88% du viewport visible */
-
-        /* 1. Fixer la hauteur totale de la carte */
-        card.style.height = cardH + 'px';
-
-        /* 2. Forcer un reflow pour que offsetHeight soit juste */
-        void card.offsetHeight;
-
-        /* 3. Calculer l'espace restant pour le body */
-        var headerH = header ? header.offsetHeight : 80;
-        var footerH = footer ? footer.offsetHeight : 68;
-        var bodyH   = Math.max(cardH - headerH - footerH, 60);
-
-        /* 4. Appliquer la hauteur en dur sur le body scrollable */
-        body.style.height    = bodyH + 'px';
-        body.style.maxHeight = bodyH + 'px';
-    }
-
     function openPaymentModal() {
         var modal = document.getElementById('modal-payment-dashboard');
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
-        /* Double requestAnimationFrame : attend 2 frames de rendu
-           pour que offsetHeight soit correct après display:block */
+        /* Ajuste bottom de pay-scroll selon la hauteur réelle du footer */
         requestAnimationFrame(function() {
-            requestAnimationFrame(calcPaymentLayout);
+            var footer = document.getElementById('pay-footer');
+            var scroll = document.getElementById('pay-scroll');
+            if (scroll) {
+                scroll.style.bottom = (footer ? footer.offsetHeight : 0) + 'px';
+            }
         });
     }
 
     function closePaymentModal() {
         document.getElementById('modal-payment-dashboard').style.display = 'none';
         document.body.style.overflow = '';
-    }
-
-    /* Recalcul si viewport change (clavier, rotation) */
-    window.addEventListener('resize', function() {
-        var modal = document.getElementById('modal-payment-dashboard');
-        if (modal && modal.style.display !== 'none') {
-            calcPaymentLayout();
-        }
-    });
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', function() {
-            var modal = document.getElementById('modal-payment-dashboard');
-            if (modal && modal.style.display !== 'none') {
-                calcPaymentLayout();
-            }
-        });
     }
 
     function selectMethodDash(method) {
@@ -3241,13 +3224,12 @@
 
     function previewProofDash(input) {
         var preview = document.getElementById('proof-preview-dash');
-        var img     = document.getElementById('proof-img-dash');
+        var img = document.getElementById('proof-img-dash');
         if (!input.files || !input.files[0]) return;
         var reader = new FileReader();
         reader.onload = function(e) {
             img.src = e.target.result;
             preview.style.display = 'block';
-            /* Image fixée à 100px → le layout ne change pas, pas besoin de recalculer */
         };
         reader.readAsDataURL(input.files[0]);
     }
