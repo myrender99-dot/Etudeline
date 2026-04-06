@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecteur de Fichiers - Étude LINE</title>
+    <style>
+        /* Désactiver sélection accidentelle sur l'interface */
+        button, .header, .header *, .back-button,
+        .controls, .controls *, h1, h2, h3,
+        .viewer-controls, .page-info {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Garder la sélection pour le contenu PDF/documents */
+        #viewer, #viewer *, canvas, .pdf-page,
+        .document-content, p {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+            height: 100vh;
+            margin: 0;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            position: relative;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .back-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 101;
+            font-weight: 500;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .back-button:active {
+            background: rgba(255,255,255,0.4);
+            transform: scale(0.98);
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 12px 24px;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .file-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .viewer-container {
+            padding: 0;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e9ecef;
+            border-top-color: #764ba2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .pdf-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .pdf-controls {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pdf-controls button {
+            background: #764ba2;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .pdf-controls button:hover:not(:disabled) {
+            background: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .pdf-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pdf-page {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 16px 0;
+        }
+
+        .pdf-nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: #3c3c3c;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .pdf-nav-bar {
+                display: none !important;
+            }
+        }
+
+        .pdf-nav-bar button {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .pdf-nav-bar button:hover:not(:disabled) {
+            background: #764ba2;
+        }
+
+        .pdf-nav-bar button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .pdf-page-info {
+            color: #ddd;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 110px;
+            text-align: center;
+        }
+
+        .pdf-page-input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background: #444;
+            color: white;
+            font-size: 14px;
+            padding: 4px 6px;
+        }
+
+        .pdf-canvas-area {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: auto;
+            background: #525659;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .pdf-canvas-area canvas {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            display: block;
+            max-width: 100%;
+        }
+
+        .pdf-scroll-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .pdf-scroll-container canvas {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            width: 100% !important;
+            height: auto !important;
+            display: block;
+        }
+
+        .docx-content {
+            background: white;
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .docx-content h1 { font-size: 28px; margin: 24px 0 16px; }
+        .docx-content h2 { font-size: 24px; margin: 20px 0 12px; }
+        .docx-content h3 { font-size: 20px; margin: 16px 0 10px; }
+        .docx-content p { margin: 12px 0; }
+        .docx-content ul, .docx-content ol { margin: 12px 0; padding-left: 40px; }
+        .docx-content li { margin: 6px 0; }
+
+        .image-viewer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            background: #000;
+        }
+
+        .image-viewer img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .video-viewer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            background: #000;
+        }
+
+        .video-viewer video {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .pptx-viewer iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 600px;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                border-radius: 0;
+            }
+
+            .header {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+                flex: 1;
+                min-width: 150px;
+            }
+
+            .back-button {
+                padding: 10px 20px;
+                font-size: 14px;
+                white-space: nowrap;
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+
+            .file-info {
+                display: none;
+            }
+
+            .file-info-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .info-label {
+                font-size: 11px;
+            }
+
+            .info-value {
+                font-size: 13px;
+            }
+
+            .viewer-container {
+                padding: 0;
+                min-height: calc(100vh - 60px);
+                max-height: calc(100vh - 60px);
+            }
+
+            .docx-content {
+                padding: 8px;
+                font-size: 18px;
+            }
+
+            .docx-content h1 { font-size: 28px; }
+            .docx-content h2 { font-size: 24px; }
+            .docx-content h3 { font-size: 20px; }
+
+            .image-viewer {
+                padding: 0;
+            }
+
+            .image-viewer img {
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .video-viewer {
+                padding: 0;
+            }
+
+            .video-viewer video {
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .pdf-controls {
+                font-size: 13px;
+                padding: 10px 16px;
+                gap: 8px;
+            }
+
+            .pdf-controls button {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .pdf-controls span {
+                font-size: 12px;
+            }
+
+            .pdf-page {
+                max-width: 100%;
+            }
+
+            .pdf-scroll-container {
+                gap: 0;
+                padding: 0;
+                margin: 0;
+            }
+
+            .pdf-scroll-container canvas {
+                width: 100% !important;
+                height: auto !important;
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .pptx-viewer {
+                padding: 40px 12px !important;
+            }
+
+            .pptx-viewer > div {
+                padding: 24px !important;
+            }
+
+            .pptx-viewer h2 {
+                font-size: 20px !important;
+            }
+
+            .pptx-viewer p {
+                font-size: 14px !important;
+            }
+
+            .loading {
+                min-height: 250px;
+                gap: 12px;
+            }
+
+            .loading p {
+                font-size: 14px;
+            }
+
+            .spinner {
+                width: 40px;
+                height: 40px;
+            }
+
+            .error-message {
+                padding: 16px;
+                font-size: 14px;
+            }
+
+            .error-message h3 {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Lecteur de Fichiers</h1>
+            <button onclick="goBack(event)" class="back-button" id="back-btn">
+                ← Retour
+            </button>
+        </div>
+
+        <div class="file-info">
+            <div class="file-info-grid">
+                <div class="info-item">
+                    <span class="info-label">Nom du fichier</span>
+                    <span class="info-value" id="file-name">Chargement...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Type de fichier</span>
+                    <span class="info-value" id="file-type">Détection...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Statut</span>
+                    <span class="info-value" id="file-status">En cours...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="viewer-container" id="viewer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Chargement du fichier...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.8/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+
+    <script>
+        function goBack(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (document.referrer && document.referrer !== window.location.href) {
+                window.location.href = document.referrer;
+            } else if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/dashboard/etudiant';
+            }
+        }
+
+        const fileUrl = {{ file_url|tojson }};
+        const fileName = {{ file_name|tojson }};
+        const viewerContainer = document.getElementById('viewer');
+
+        document.getElementById('file-name').textContent = fileName;
+
+        const fileExtension = fileName.split('.').pop().toLowerCase();
+        let fileTypeLabel = 'Inconnu';
+
+        if (['pdf'].includes(fileExtension)) fileTypeLabel = 'PDF';
+        else if (['doc', 'docx'].includes(fileExtension)) fileTypeLabel = 'Word';
+        else if (['ppt', 'pptx'].includes(fileExtension)) fileTypeLabel = 'PowerPoint';
+        else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(fileExtension)) fileTypeLabel = 'Image';
+        else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExtension)) fileTypeLabel = 'Vidéo';
+
+        document.getElementById('file-type').textContent = fileTypeLabel;
+
+        async function loadFile() {
+            try {
+                if (fileExtension === 'pdf') {
+                    await loadPDF();
+                } else if (['doc', 'docx'].includes(fileExtension)) {
+                    await loadDOCX();
+                } else if (['ppt', 'pptx'].includes(fileExtension)) {
+                    loadPPTX();
+                } else if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(fileExtension)) {
+                    loadImage();
+                } else if (['mp4', 'webm', 'ogg', 'mov'].includes(fileExtension)) {
+                    loadVideo();
+                } else {
+                    showError('Type de fichier non supporté');
+                }
+            } catch (error) {
+                console.error('Erreur de chargement:', error);
+                showError('Erreur lors du chargement du fichier: ' + error.message);
+            }
+        }
+
+        async function loadPDF() {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            const pdf = await pdfjsLib.getDocument({
+                url: fileUrl,
+                rangeChunkSize: 65536,
+                disableAutoFetch: false,
+                disableStream: false
+            }).promise;
+
+            const numPages = pdf.numPages;
+            const isMobile = window.innerWidth <= 768;
+            const scale = isMobile ? 2.0 : 1.8;
+
+            // Mode scroll continu : toutes les pages sont rendues en séquence
+            viewerContainer.style.overflowY = 'auto';
+            viewerContainer.style.overflowX = 'hidden';
+            viewerContainer.innerHTML = '';
+
+            // — Barre de navigation fixe en haut —
+            const navBar = document.createElement('div');
+            navBar.className = 'pdf-nav-bar';
+            navBar.style.position = 'sticky';
+            navBar.style.top = '0';
+            navBar.style.zIndex = '10';
+
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'pdf-page-info';
+            pageInfo.textContent = `Page 1 / ${numPages}`;
+
+            const gotoInput = document.createElement('input');
+            gotoInput.type = 'number';
+            gotoInput.className = 'pdf-page-input';
+            gotoInput.min = 1;
+            gotoInput.max = numPages;
+            gotoInput.value = 1;
+            gotoInput.title = 'Aller à la page';
+
+            const gotoBtn = document.createElement('button');
+            gotoBtn.textContent = '↵ Aller';
+            gotoBtn.style.padding = '7px 14px';
+
+            navBar.appendChild(pageInfo);
+            navBar.appendChild(gotoInput);
+            navBar.appendChild(gotoBtn);
+            viewerContainer.appendChild(navBar);
+
+            // — Zone de scroll contenant toutes les pages —
+            const scrollArea = document.createElement('div');
+            scrollArea.style.cssText = 'background:#525659; padding:20px; display:flex; flex-direction:column; align-items:center; gap:16px;';
+            viewerContainer.appendChild(scrollArea);
+
+            // Tableau des canvas par page pour détecter la page visible
+            const pageCanvases = [];
+
+            // Rendre les pages progressivement
+            document.getElementById('file-status').textContent = `⏳ Chargement des pages...`;
+
+            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                const wrapper = document.createElement('div');
+                wrapper.dataset.page = pageNum;
+                wrapper.style.cssText = 'width:100%; max-width:900px; display:flex; flex-direction:column; align-items:center;';
+
+                // Étiquette de page
+                const label = document.createElement('div');
+                label.style.cssText = 'color:#ccc; font-size:12px; margin-bottom:6px; align-self:flex-end; padding-right:4px;';
+                label.textContent = `Page ${pageNum} / ${numPages}`;
+
+                const canvas = document.createElement('canvas');
+                canvas.style.cssText = 'box-shadow:0 4px 20px rgba(0,0,0,0.4); display:block; max-width:100%; width:100%;';
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(canvas);
+                scrollArea.appendChild(wrapper);
+                pageCanvases.push({ pageNum, canvas, wrapper });
+
+                // Rendu asynchrone page par page
+                (async (pNum, cvs) => {
+                    const page = await pdf.getPage(pNum);
+                    const viewport = page.getViewport({ scale });
+                    cvs.width = viewport.width;
+                    cvs.height = viewport.height;
+                    await page.render({ canvasContext: cvs.getContext('2d'), viewport }).promise;
+                    if (pNum === numPages) {
+                        document.getElementById('file-status').textContent = `✅ ${numPages} page${numPages > 1 ? 's' : ''}`;
+                    }
+                })(pageNum, canvas);
+            }
+
+            // — Mise à jour de l'indicateur de page au scroll —
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const p = parseInt(entry.target.dataset.page);
+                        pageInfo.textContent = `Page ${p} / ${numPages}`;
+                        gotoInput.value = p;
+                    }
+                });
+            }, { root: viewerContainer, threshold: 0.3 });
+
+            pageCanvases.forEach(({ wrapper }) => observer.observe(wrapper));
+
+            // — Aller à une page précise —
+            function goToPage(p) {
+                const idx = Math.max(1, Math.min(numPages, parseInt(p) || 1)) - 1;
+                pageCanvases[idx].wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            gotoBtn.addEventListener('click', () => goToPage(gotoInput.value));
+            gotoInput.addEventListener('keydown', e => { if (e.key === 'Enter') goToPage(gotoInput.value); });
+
+            // Navigation clavier
+            document.addEventListener('keydown', e => {
+                if (e.target.tagName === 'INPUT') return;
+                const cur = parseInt(pageInfo.textContent.match(/\d+/)[0]) || 1;
+                if (e.key === 'ArrowDown' || e.key === 'ArrowRight') goToPage(cur + 1);
+                if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  goToPage(cur - 1);
+            });
+        }
+
+        async function loadDOCX() {
+            const response = await fetch(fileUrl);
+            const arrayBuffer = await response.arrayBuffer();
+
+            const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+            const cleanHtml = DOMPurify.sanitize(result.value);
+
+            viewerContainer.innerHTML = `
+                <div class="docx-content">
+                    ${cleanHtml}
+                </div>
+            `;
+
+            document.getElementById('file-status').textContent = '✅ Chargé';
+        }
+
+        function loadPPTX() {
+            viewerContainer.innerHTML = '';
+            
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'pptx-viewer';
+            mainDiv.style.cssText = 'text-align: center; padding: 60px 20px;';
+            
+            const innerDiv = document.createElement('div');
+            innerDiv.style.cssText = 'background: #f8f9fa; border-radius: 12px; padding: 40px; max-width: 600px; margin: 0 auto;';
+            
+            const icon = document.createElement('div');
+            icon.style.cssText = 'font-size: 64px; margin-bottom: 20px;';
+            icon.textContent = '📊';
+            
+            const title = document.createElement('h2');
+            title.style.cssText = 'color: #764ba2; margin-bottom: 16px;';
+            title.textContent = 'Fichier PowerPoint';
+            
+            const message = document.createElement('p');
+            message.style.cssText = 'color: #6c757d; margin-bottom: 24px; line-height: 1.6;';
+            message.innerHTML = 'L\'affichage des présentations PowerPoint n\'est pas disponible dans le navigateur.<br>Veuillez télécharger le fichier pour le consulter.';
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.setAttribute('href', '/files/download/' + fileUrl.replace('/uploads/', ''));
+            downloadLink.style.cssText = 'display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;';
+            downloadLink.textContent = '⬇️ Télécharger le fichier';
+            downloadLink.onmouseover = function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 8px 16px rgba(118, 75, 162, 0.3)';
+            };
+            downloadLink.onmouseout = function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            };
+            
+            innerDiv.appendChild(icon);
+            innerDiv.appendChild(title);
+            innerDiv.appendChild(message);
+            innerDiv.appendChild(downloadLink);
+            mainDiv.appendChild(innerDiv);
+            viewerContainer.appendChild(mainDiv);
+            
+            document.getElementById('file-status').textContent = '📥 Téléchargement disponible';
+        }
+
+        function loadImage() {
+            viewerContainer.innerHTML = '';
+            
+            const container = document.createElement('div');
+            container.className = 'image-viewer';
+            
+            const img = document.createElement('img');
+            img.setAttribute('src', fileUrl);
+            img.setAttribute('alt', fileName);
+            img.onload = () => {
+                document.getElementById('file-status').textContent = '✅ Chargé';
+            };
+            img.onerror = () => {
+                showError('Impossible de charger l\'image');
+            };
+            
+            container.appendChild(img);
+            viewerContainer.appendChild(container);
+        }
+
+        function loadVideo() {
+            viewerContainer.innerHTML = '';
+            
+            const container = document.createElement('div');
+            container.className = 'video-viewer';
+            
+            const video = document.createElement('video');
+            video.setAttribute('controls', '');
+            video.setAttribute('preload', 'metadata');
+            video.onloadedmetadata = () => {
+                document.getElementById('file-status').textContent = '✅ Chargé';
+            };
+            
+            const source = document.createElement('source');
+            source.setAttribute('src', fileUrl);
+            source.setAttribute('type', 'video/' + fileExtension);
+            
+            video.appendChild(source);
+            video.appendChild(document.createTextNode('Votre navigateur ne supporte pas la lecture vidéo.'));
+            container.appendChild(video);
+            viewerContainer.appendChild(container);
+        }
+
+        function showError(message) {
+            viewerContainer.innerHTML = '';
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            
+            const title = document.createElement('h3');
+            title.textContent = '❌ Erreur';
+            
+            const messageP = document.createElement('p');
+            messageP.textContent = message;
+            
+            errorDiv.appendChild(title);
+            errorDiv.appendChild(messageP);
+            viewerContainer.appendChild(errorDiv);
+            
+            document.getElementById('file-status').textContent = '❌ Erreur';
+        }
+
+        loadFile();
+    </script>
+</body>
+</html>

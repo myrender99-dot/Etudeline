@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étude LINE - Accueil</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Étude LINE">
+    <link rel="manifest" href="/static/manifest.json">
+    <!-- Apple Touch Icon for iOS (180x180 is the standard for modern iPhones) -->
+    <link rel="apple-touch-icon" href="/static/icons/icon-180.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/lucide@0.263.1/dist/umd/lucide.js" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #f8fafc;
+            --accent: #6366f1;
+            --success: #10b981;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+        }
+        
+        /* Désactiver sélection accidentelle sur l'interface */
+        button, .navbar, h1, h2, h3, h4,
+        .hero-section, .feature-card, .cta-section,
+        .footer, a, .btn, label {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Garder la sélection pour le texte informatif */
+        p, .description, .content-text {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+            font-weight: 400;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        
+        .container {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            max-width: 1000px;
+            width: 100%;
+            padding: 48px;
+        }
+        
+        /* Desktop Pro Optimizations - Full Width Experience */
+        @media (min-width: 1400px) {
+            .container {
+                max-width: 1300px;
+                padding: 60px 80px;
+            }
+        }
+        
+        @media (min-width: 1600px) {
+            .container {
+                max-width: 1500px;
+                padding: 70px 100px;
+            }
+            
+            .header h1 {
+                font-size: 3rem;
+            }
+        }
+        
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 1700px;
+                padding: 80px 120px;
+            }
+            
+            .header h1 {
+                font-size: 3.5rem;
+            }
+            
+            .header p {
+                font-size: 1.3rem;
+            }
+        }
+        
+        @media (min-width: 2560px) {
+            .container {
+                max-width: 2200px;
+                padding: 100px 150px;
+            }
+            
+            .header h1 {
+                font-size: 4rem;
+            }
+            
+            .header p {
+                font-size: 1.5rem;
+            }
+            
+            .role-card {
+                padding: 2.5rem;
+            }
+            
+            .role-card h3 {
+                font-size: 1.8rem;
+            }
+            
+            .role-card p {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Tablet adjustments (light touch) */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 32px !important;
+            }
+            
+            .roles-grid {
+                gap: 20px !important;
+            }
+        }
+        
+        /* Mobile Responsive - Version Pro */
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 10px !important;
+            }
+            
+            .container {
+                padding: 24px !important;
+                max-width: 100% !important;
+            }
+            
+            .header {
+                margin-bottom: 24px !important;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem !important;
+                line-height: 1.2 !important;
+                margin-bottom: 10px !important;
+            }
+            
+            .header p {
+                font-size: 0.95rem !important;
+                line-height: 1.5 !important;
+            }
+            
+            .hero-image {
+                margin: 20px 0 !important;
+            }
+            
+            .hero-image img {
+                height: 220px !important;
+                max-width: 100% !important;
+                object-fit: cover !important;
+            }
+            
+            .roles-grid {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+            
+            .main-content {
+                display: block !important;
+                width: 100% !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .login-link {
+                margin-top: 24px !important;
+            }
+            
+            footer {
+                margin-top: 32px !important;
+            }
+            
+            .role-card {
+                padding: 18px !important;
+            }
+            
+            .role-card h3 {
+                font-size: 1.15rem !important;
+                margin-bottom: 10px !important;
+            }
+            
+            .role-card p {
+                font-size: 0.9rem !important;
+                line-height: 1.5 !important;
+            }
+            
+            .btn {
+                padding: 14px 24px !important;
+                font-size: 0.95rem !important;
+            }
+            
+            .card {
+                padding: 20px !important;
+                margin: 12px 0 !important;
+            }
+            
+            .form-group input, .form-group select {
+                font-size: 16px !important; /* Évite le zoom sur iOS */
+                padding: 14px !important;
+            }
+            
+            .login-btn {
+                padding: 0.9rem 2rem !important;
+                font-size: 1.05rem !important;
+            }
+            
+            .login-link p {
+                font-size: 1rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 8px !important;
+            }
+            
+            .container {
+                padding: 20px !important;
+            }
+            
+            .header {
+                margin-bottom: 20px !important;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem !important;
+                line-height: 1.15 !important;
+            }
+            
+            .header p {
+                font-size: 0.85rem !important;
+            }
+            
+            .hero-image img {
+                height: 180px !important;
+            }
+            
+            .role-card {
+                padding: 16px !important;
+            }
+            
+            .role-card h3 {
+                font-size: 1.05rem !important;
+            }
+            
+            .role-card p {
+                font-size: 0.85rem !important;
+            }
+            
+            .btn {
+                padding: 12px 20px !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .login-btn {
+                padding: 0.8rem 1.75rem !important;
+                font-size: 1rem !important;
+            }
+            
+            .login-link {
+                padding-top: 16px !important;
+                margin-top: 20px !important;
+            }
+            
+            .login-link p {
+                font-size: 0.9rem !important;
+            }
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .header h1 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-primary);
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .hero-image {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .hero-image img {
+            max-width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .main-content {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            padding: 32px;
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card:hover::before {
+            opacity: 1;
+        }
+        
+        .card h2 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            letter-spacing: 0.01em;
+        }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .password-field input {
+            padding-right: 3rem;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            padding: 0.25rem;
+            border-radius: 4px;
+        }
+        
+        .toggle-password:hover {
+            color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.01em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        /* Bouton Se connecter - taille augmentée */
+        .login-btn {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white !important;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.01em;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .login-btn:active {
+            transform: translateY(0);
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Styles pour l'interface d'inscription */
+        .hidden {
+            display: none;
+            opacity: 0;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+        
+        .fade-out {
+            animation: fadeOut 0.3s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+        
+        .cancel-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+        
+        .cancel-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ Étude LINE</h1>
+            <p>Plateforme éducative pour professeurs et étudiants</p>
+        </div>
+        
+        <div class="hero-image">
+            <picture>
+                <source srcset="/static/groupe-etude.webp" type="image/webp">
+                <img src="/static/groupe-etude.png" alt="Étudiant, étudiante et professeur travaillant ensemble dans un environnement universitaire moderne" loading="lazy">
+            </picture>
+        </div>
+        
+        {% if error %}
+        <div class="error">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+        
+        <div class="main-content">
+            <!-- Espace Étudiant -->
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <!-- Vue initiale avec bouton S'inscrire -->
+                <div id="welcome-view">
+                    <h2>🎓 Espace Étudiant</h2>
+                    <p style="text-align: center; color: var(--text-secondary); margin-bottom: 24px; font-size: 1.05rem;">
+                        Accédez à tous les cours, exercices et solutions de votre filière
+                    </p>
+                    <button onclick="toggleInscription()" class="btn" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        📝 S'inscrire
+                    </button>
+                </div>
+                
+                <!-- Formulaire d'inscription (caché par défaut) -->
+                <div id="inscription-form" class="hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0;">🌟 Inscription Étudiant</h2>
+                        <button onclick="toggleInscription()" class="cancel-btn" title="Annuler">✕</button>
+                    </div>
+                    
+                    <form action="/register/etudiant" method="post">
+                        <div class="form-group">
+                            <label for="etud-nom">Nom</label>
+                            <input type="text" id="etud-nom" name="nom" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="etud-prenom">Prénom</label>
+                            <input type="text" id="etud-prenom" name="prenom" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="etud-username">Nom d'utilisateur</label>
+                            <input type="text" id="etud-username" name="username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="etud-password">Mot de passe</label>
+                            <div class="password-field">
+                                <input type="password" id="etud-password" name="password" autocomplete="new-password" required>
+                                <button type="button" class="toggle-password" onclick="togglePassword('etud-password')">
+                                    👁️
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="etud-universite">Université</label>
+                            <select id="etud-universite" name="universite_id" required>
+                                <option value="">Sélectionner une université</option>
+                                {% for uni in universites %}
+                                <option value="{{ uni.id }}">{{ uni.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="etud-ufr">UFR</label>
+                            <select id="etud-ufr" name="ufr_id" required disabled>
+                                <option value="">Sélectionner d'abord une université</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="etud-filiere">Filière</label>
+                            <select id="etud-filiere" name="filiere_id" required disabled>
+                                <option value="">Sélectionner d'abord une UFR</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="etud-niveau">Niveau</label>
+                            <select id="etud-niveau" name="niveau" required>
+                                <option value="">Sélectionner un niveau</option>
+                                <option value="L1">Licence 1 (L1)</option>
+                                <option value="L2">Licence 2 (L2)</option>
+                                <option value="L3">Licence 3 (L3)</option>
+                                <option value="M1">Master 1 (M1)</option>
+                                <option value="M2">Master 2 (M2)</option>
+                                <option value="BTS1">BTS 1 (BTS1)</option>
+                                <option value="BTS2">BTS 2 (BTS2)</option>
+                                <option value="BTS3">BTS 3 (BTS3)</option>
+                                <option value="BTS4">BTS 4 (BTS4)</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn">Créer compte Étudiant</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-link">
+            <p>Déjà un compte ?</p>
+            <div style="text-align: center; margin-top: 1rem;">
+                <a href="/login" class="login-btn">
+                    🔑 Se connecter
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Fonction pour basculer entre la vue d'accueil et le formulaire d'inscription
+        function toggleInscription() {
+            const welcomeView = document.getElementById('welcome-view');
+            const inscriptionForm = document.getElementById('inscription-form');
+            
+            if (welcomeView.style.display !== 'none') {
+                // Masquer la vue d'accueil
+                welcomeView.classList.add('fade-out');
+                setTimeout(() => {
+                    welcomeView.style.display = 'none';
+                    welcomeView.classList.remove('fade-out');
+                    
+                    // Afficher le formulaire
+                    inscriptionForm.style.display = 'block';
+                    inscriptionForm.classList.remove('hidden');
+                    inscriptionForm.classList.add('fade-in');
+                }, 300);
+            } else {
+                // Masquer le formulaire
+                inscriptionForm.classList.remove('fade-in');
+                inscriptionForm.classList.add('fade-out');
+                setTimeout(() => {
+                    inscriptionForm.style.display = 'none';
+                    inscriptionForm.classList.remove('fade-out');
+                    inscriptionForm.classList.add('hidden');
+                    
+                    // Afficher la vue d'accueil
+                    welcomeView.style.display = 'block';
+                    welcomeView.classList.add('fade-in');
+                }, 300);
+            }
+        }
+        
+        // Fonction pour basculer l'affichage du mot de passe
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.textContent = '🙈';
+                button.title = 'Masquer le mot de passe';
+            } else {
+                field.type = 'password';
+                button.textContent = '👁️';
+                button.title = 'Afficher le mot de passe';
+            }
+        }
+        
+        // Gestion des sélecteurs hiérarchiques
+        const universiteSelect = document.getElementById('etud-universite');
+        const ufrSelect = document.getElementById('etud-ufr');
+        const filiereSelect = document.getElementById('etud-filiere');
+        
+        // Réinitialise et désactive un sélecteur
+        function resetSelect(select, message) {
+            select.innerHTML = `<option value="">${message}</option>`;
+            select.disabled = true;
+            select.value = '';
+        }
+        
+        // Charge les UFR quand une université est sélectionnée
+        universiteSelect.addEventListener('change', async function() {
+            const universiteId = this.value;
+            
+            // Réinitialise les sélecteurs suivants
+            resetSelect(ufrSelect, 'Chargement des UFR...');
+            resetSelect(filiereSelect, 'Sélectionner d\'abord une UFR');
+            
+            if (universiteId) {
+                try {
+                    // Charger les UFR
+                    const response = await fetch(`/api/ufrs/${universiteId}`);
+                    const data = await response.json();
+                    
+                    ufrSelect.innerHTML = '<option value="">Sélectionner une UFR</option>';
+                    data.ufrs.forEach(ufr => {
+                        const option = document.createElement('option');
+                        option.value = ufr.id;
+                        option.textContent = ufr.nom;
+                        ufrSelect.appendChild(option);
+                    });
+                    ufrSelect.disabled = false;
+                    
+                    // Note: Le logo s'affichera uniquement dans les dashboards après connexion
+                } catch (error) {
+                    console.error('Erreur lors du chargement des UFR:', error);
+                    resetSelect(ufrSelect, 'Erreur lors du chargement');
+                }
+            }
+        });
+        
+        // Charge les filières quand une UFR est sélectionnée
+        ufrSelect.addEventListener('change', async function() {
+            const ufrId = this.value;
+            
+            // Réinitialise le sélecteur suivant
+            resetSelect(filiereSelect, 'Chargement des filières...');
+            
+            if (ufrId) {
+                try {
+                    const response = await fetch(`/api/filieres/${ufrId}`);
+                    const data = await response.json();
+                    
+                    filiereSelect.innerHTML = '<option value="">Sélectionner une filière</option>';
+                    data.filieres.forEach(filiere => {
+                        const option = document.createElement('option');
+                        option.value = filiere.id;
+                        option.textContent = filiere.nom;
+                        filiereSelect.appendChild(option);
+                    });
+                    filiereSelect.disabled = false;
+                } catch (error) {
+                    console.error('Erreur lors du chargement des filières:', error);
+                    resetSelect(filiereSelect, 'Erreur lors du chargement');
+                }
+            }
+        });
+    </script>
+    
+    <footer style="text-align: center; margin-top: 30px; padding: 20px; border-top: 1px solid #e9ecef; color: #666; font-size: 0.9rem; width: 100%; clear: both; display: block;">
+        © 2025 Maodo Ka - Tous droits réservés | Étude LINE
+    </footer>
+    
+    <!-- Bannière d'installation PWA (Android/Desktop) -->
+    <div id="pwa-install-banner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 10000; max-width: 500px; width: 90%; animation: slideUp 0.5s ease;">
+        <button onclick="closePWABanner()" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 1.3rem; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">✕</button>
+        <div style="text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">📲</div>
+            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; font-weight: 600;">Installer Étude LINE</h3>
+            <p style="margin: 0 0 15px 0; font-size: 0.95rem; opacity: 0.95;">Ajoutez l'application à votre écran d'accueil pour un accès rapide !</p>
+            <button onclick="installPWA()" style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                🚀 Installer maintenant
+            </button>
+        </div>
+    </div>
+    
+    <!-- Bannière d'installation PWA pour iOS (Bouton) -->
+    <div id="ios-install-banner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 10000; max-width: 500px; width: 90%; animation: slideUp 0.5s ease;">
+        <button onclick="closeIOSBanner()" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 1.3rem; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">✕</button>
+        <div style="text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">📱</div>
+            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; font-weight: 600;">Installer Étude LINE</h3>
+            <p style="margin: 0 0 15px 0; font-size: 0.95rem; opacity: 0.95;">Ajoutez l'application à votre écran d'accueil pour un accès rapide !</p>
+            <button onclick="showIOSInstructions()" style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                🚀 Installer maintenant
+            </button>
+        </div>
+    </div>
+    
+    <!-- Modale d'instructions iOS -->
+    <div id="ios-instructions-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; align-items: center; justify-content: center; animation: fadeIn 0.3s ease;">
+        <div style="background: white; border-radius: 20px; max-width: 450px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.4); animation: slideUpModal 0.3s ease;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 20px 20px 0 0; position: relative;">
+                <button onclick="closeIOSInstructions()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 1.5rem; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">✕</button>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">📱</div>
+                    <h3 style="margin: 0; font-size: 1.3rem; font-weight: 600;">Installation sur iPhone</h3>
+                </div>
+            </div>
+            <div style="padding: 30px; color: #333;">
+                <p style="margin: 0 0 25px 0; font-size: 1rem; color: #666; text-align: center;">Suivez ces étapes pour installer l'application :</p>
+                
+                <!-- Instructions Safari -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #667eea;">
+                        <div style="display: flex; align-items: start; gap: 15px;">
+                            <div style="background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+                            <div>
+                                <p style="margin: 0 0 8px 0; font-weight: 600; color: #333;">Ouvrir le menu Partage</p>
+                                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #666;">Appuyez sur le bouton <strong style="background: #e8eaf6; color: #667eea; padding: 3px 10px; border-radius: 6px; white-space: nowrap;">Partage <span style="font-size: 1.2rem;">⬆️</span></strong> tout en bas de votre navigateur Safari (dans la barre du bas, pas sur la page web)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #fff9e6; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 4px solid #ff9800;">
+                        <div style="display: flex; align-items: start; gap: 15px;">
+                            <div style="background: #ff9800; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+                            <div>
+                                <p style="margin: 0 0 8px 0; font-weight: 600; color: #333;">Défiler DANS LE MENU Partage</p>
+                                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #666;"><strong style="background: #ffe0b2; color: #e65100; padding: 3px 10px; border-radius: 6px;">⚠️ Important :</strong> Un menu popup s'est ouvert. Faites défiler <strong>DANS CE MENU</strong> (pas sur la page web) pour trouver l'option en bas</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; border-left: 4px solid #764ba2;">
+                        <div style="display: flex; align-items: start; gap: 15px;">
+                            <div style="background: #764ba2; color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+                            <div>
+                                <p style="margin: 0 0 8px 0; font-weight: 600; color: #333;">Ajouter à l'écran d'accueil</p>
+                                <p style="margin: 0; font-size: 0.95rem; line-height: 1.5; color: #666;">Dans le menu, sélectionnez l'option <strong style="background: #e8eaf6; color: #764ba2; padding: 3px 10px; border-radius: 6px; white-space: nowrap;">Sur l'écran d'accueil <span style="font-size: 1.2rem;">➕</span></strong> puis appuyez sur <strong>"Ajouter"</strong> en haut à droite</p>
+                            </div>
+                        </div>
+                    </div>
+                
+                <div style="margin-top: 25px; text-align: center;">
+                    <button onclick="closeIOSInstructions()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 35px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                        J'ai compris
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUpModal {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    
+    <style>
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        #pwa-install-banner button:hover {
+            transform: scale(1.05);
+        }
+        
+        @media screen and (max-width: 600px) {
+            #pwa-install-banner {
+                bottom: 10px !important;
+                padding: 15px 20px !important;
+                width: 95% !important;
+            }
+            
+            #pwa-install-banner h3 {
+                font-size: 1.1rem !important;
+            }
+            
+            #pwa-install-banner p {
+                font-size: 0.85rem !important;
+            }
+            
+            #pwa-install-banner button {
+                padding: 10px 20px !important;
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
+
+    <!-- Service Worker Registration -->
+    <script>
+        let deferredPrompt;
+        
+        // Détecter iOS (iPhone, iPad, iPod) - y compris les iPad modernes avec iPadOS
+        function detectIOS() {
+            const userAgent = navigator.userAgent;
+            const platform = navigator.platform;
+            
+            // Détection classique pour iPhone, iPod, et anciens iPad
+            if (/iPhone|iPod/.test(userAgent)) {
+                return true;
+            }
+            
+            // Détection pour iPad (y compris iPadOS 13+ qui se fait passer pour Mac)
+            if (/iPad/.test(userAgent)) {
+                return true;
+            }
+            
+            // Détection pour iPad moderne (iPadOS 13+) qui rapporte "MacIntel"
+            // Ces appareils ont un user agent Mac mais supportent le tactile
+            if (platform === 'MacIntel' && navigator.maxTouchPoints > 1) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        const isIOS = detectIOS();
+        const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+        
+        // Pour iOS : afficher les instructions si pas déjà installé
+        if (isIOS && !isInStandaloneMode) {
+            window.addEventListener('load', () => {
+                // Afficher la bannière iOS immédiatement
+                document.getElementById('ios-install-banner').style.display = 'block';
+            });
+        }
+        
+        // Pour Android/Desktop : utiliser beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Empêcher le navigateur d'afficher son propre prompt
+            e.preventDefault();
+            
+            // Stocker l'événement pour l'utiliser plus tard
+            deferredPrompt = e;
+            
+            // Afficher notre bannière personnalisée immédiatement
+            document.getElementById('pwa-install-banner').style.display = 'block';
+            
+            console.log('✅ Prompt d\'installation PWA prêt');
+        });
+        
+        // Fonction pour installer la PWA (Android/Desktop)
+        async function installPWA() {
+            if (!deferredPrompt) {
+                alert('L\'installation n\'est pas disponible pour le moment.');
+                return;
+            }
+            
+            // Afficher le prompt d'installation natif
+            deferredPrompt.prompt();
+            
+            // Attendre le choix de l'utilisateur
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('✅ PWA installée avec succès');
+            } else {
+                console.log('❌ Installation refusée');
+            }
+            
+            // Masquer la bannière
+            document.getElementById('pwa-install-banner').style.display = 'none';
+            
+            // Réinitialiser le prompt
+            deferredPrompt = null;
+        }
+        
+        // Fonction pour fermer la bannière Android
+        function closePWABanner() {
+            document.getElementById('pwa-install-banner').style.display = 'none';
+        }
+        
+        // Fonction pour fermer la bannière iOS
+        function closeIOSBanner() {
+            document.getElementById('ios-install-banner').style.display = 'none';
+        }
+        
+        // Fonction pour afficher les instructions iOS dans une modale
+        function showIOSInstructions() {
+            document.getElementById('ios-instructions-modal').style.display = 'flex';
+        }
+        
+        // Fonction pour fermer la modale d'instructions iOS
+        function closeIOSInstructions() {
+            document.getElementById('ios-instructions-modal').style.display = 'none';
+        }
+        
+        // Exposer les fonctions au scope global pour onclick
+        window.showIOSInstructions = showIOSInstructions;
+        window.closeIOSInstructions = closeIOSInstructions;
+        window.closeIOSBanner = closeIOSBanner;
+        window.closePWABanner = closePWABanner;
+        window.installPWA = installPWA;
+        
+        // Enregistrer le Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker enregistré avec succès:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('❌ Échec de l\'enregistrement du Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

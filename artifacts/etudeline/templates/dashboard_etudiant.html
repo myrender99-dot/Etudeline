@@ -1,0 +1,3166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord Étudiant - Étude LINE</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Étude LINE">
+    <link rel="manifest" href="/static/manifest.json">
+    <!-- Apple Touch Icon for iOS (180x180 is the standard for modern iPhones) -->
+    <link rel="apple-touch-icon" href="/static/icons/icon-180.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Désactiver sélection accidentelle sur l'interface */
+        button, .navbar, .navbar *, a, .btn, 
+        .menu, .tabs, .tab-button, .card-header,
+        .matiere-card, .niveau-card, .welcome-card,
+        .stats-grid, .stat-card, h1, h2, h3, h4, h5, h6,
+        .user-info, .logout-btn {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Garder la sélection pour le contenu des cours */
+        .content, .chapitre-content, .cours-content,
+        .exercice-content, .solution-content, 
+        textarea, input[type="text"], input[type="email"],
+        input[type="password"], .message-text, p {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            overflow-x: hidden;
+            width: 100%;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f6fa 0%, #e8eaf6 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            font-size: 1.5rem;
+        }
+        
+        .navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: min(1200px, 100%);
+            margin: 0.5rem auto;
+            padding: 0 2rem;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        /* Desktop Pro Optimizations - Full Width Experience */
+        @media (min-width: 1400px) {
+            .container {
+                max-width: 95%;
+                padding: 0 3rem;
+            }
+            
+            .welcome-card {
+                padding: 2rem 2.5rem;
+            }
+            
+            .university-logo {
+                width: 130px;
+                height: 130px;
+            }
+            
+            .university-name {
+                font-size: 1.5rem;
+            }
+            
+            .niveau-card {
+                padding: 2rem;
+            }
+            
+            .matiere-card {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            .matiere-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            }
+        }
+        
+        @media (min-width: 1600px) {
+            .container {
+                max-width: 96%;
+                padding: 0 4rem;
+            }
+            
+            .navbar {
+                padding: 1.5rem 4rem;
+            }
+            
+            .navbar h1 {
+                font-size: 2rem;
+            }
+            
+            .welcome-card {
+                padding: 2.5rem 3rem;
+            }
+            
+            .university-logo {
+                width: 150px;
+                height: 150px;
+            }
+        }
+        
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 97%;
+                padding: 0 5rem;
+            }
+            
+            .navbar {
+                padding: 2rem 5rem;
+            }
+            
+            .navbar h1 {
+                font-size: 2.2rem;
+            }
+            
+            .welcome-card {
+                padding: 3rem 3.5rem;
+            }
+            
+            .university-logo {
+                width: 170px;
+                height: 170px;
+            }
+        }
+        
+        @media (min-width: 2560px) {
+            .container {
+                max-width: 98%;
+                padding: 0 6rem;
+            }
+            
+            .navbar {
+                padding: 2.5rem 6rem;
+            }
+            
+            .navbar h1 {
+                font-size: 2.5rem;
+            }
+            
+            .welcome-card {
+                padding: 3.5rem 4rem;
+            }
+            
+            .welcome-card h2 {
+                font-size: 2.2rem;
+            }
+            
+            .university-logo {
+                width: 190px;
+                height: 190px;
+            }
+        }
+        
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .welcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .welcome-card h2 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+        
+        .welcome-card p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        /* Styles pour le logo et nom de l'université */
+        .university-welcome {
+            text-align: center;
+            padding: 0.5rem 0;
+        }
+
+        .university-logo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            margin: 0.75rem auto 1rem;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 0.4rem;
+        }
+
+        .university-name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 1rem 0;
+            line-height: 1.4;
+        }
+
+        .user-info-box {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border-radius: 10px;
+            margin-top: 1rem;
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .user-info-box::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        }
+
+        .user-info-box p {
+            margin-bottom: 0.5rem;
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        .user-info-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .user-info-box strong {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+        
+        /* Hierarchical Accordion Structure */
+        .niveau-card {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .niveau-header {
+            font-size: 1.1rem;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0;
+            padding: 0.8rem 1.2rem;
+            border-radius: 0;
+        }
+        
+        /* Couleurs par niveau - Tous en violet */
+        .niveau-L1 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-L2 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-L3 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-M1 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-M2 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-BTS1 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-BTS2 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-BTS3 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .niveau-BTS4 .niveau-header {
+            background: linear-gradient(135deg, #7C3AED, #7C3AED);
+        }
+        
+        .matiere-item {
+            margin-bottom: 0;
+            border: none;
+            border-bottom: 1px solid #e0e0e0;
+            border-radius: 0;
+            overflow: visible;
+            background: white;
+        }
+        
+        .matiere-header {
+            background: #f9f9f9;
+            color: #333;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            transition: background 0.3s ease;
+        }
+        
+        .matiere-header:hover {
+            background: #f0f0f0;
+        }
+        
+        .matiere-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+        
+        .matiere-header .toggle-arrow {
+            font-size: 1.1rem;
+            color: #666;
+        }
+        
+        .toggle-arrow {
+            font-size: 1.3rem;
+            transition: transform 0.15s ease;
+            display: inline-block;
+        }
+        
+        .toggle-arrow.open {
+            transform: rotate(90deg);
+        }
+        
+        .matiere-content {
+            display: none;
+            padding: 1.5rem;
+            background: #f8f9fa;
+        }
+        
+        .matiere-content.show {
+            display: block;
+            animation: slideDown 0.15s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .semestre-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .semestre-title {
+            font-size: 1.1rem;
+            color: #764ba2;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+            border-left: 4px solid #764ba2;
+        }
+        
+        .chapitre-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            border-radius: 12px;
+            margin-bottom: 0.85rem;
+            border: 2px solid #e8eaf6;
+            border-left: 5px solid #764ba2;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+            transition: all 0.2s ease;
+        }
+        
+        .chapitre-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(118, 75, 162, 0.2);
+            border-color: #667eea;
+            border-left-color: #9b59b6;
+        }
+        
+        .chapitre-header {
+            padding: 1.2rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .chapitre-header:hover {
+            background: linear-gradient(135deg, #f5f6ff 0%, #e8eaff 100%);
+        }
+        
+        .chapitre-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+            flex: 1;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            padding-right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .chapitre-content {
+            display: none;
+            padding: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+            background: #fafafa;
+        }
+        
+        .chapitre-content.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .content-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .content-section h4 {
+            color: #667eea;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+        
+        .content-text {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .file-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .file-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .file-actions {
+            background: white;
+            padding: 0.5rem;
+            margin-bottom: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .file-name-cours {
+            color: #2e7d32;
+        }
+        
+        .file-name-exercice {
+            color: #f57c00;
+        }
+        
+        .file-name-solution {
+            color: #1976d2;
+        }
+        
+        .file-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-read {
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: background 0.15s ease;
+            cursor: pointer;
+        }
+        
+        .btn-download {
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: background 0.15s ease;
+            cursor: pointer;
+        }
+        
+        .btn-read-cours {
+            background: #4caf50;
+        }
+        
+        .btn-download-cours {
+            background: #2e7d32;
+        }
+        
+        .btn-read-exercice {
+            background: #ff9800;
+        }
+        
+        .btn-download-exercice {
+            background: #e65100;
+        }
+        
+        .btn-read-solution {
+            background: #2196f3;
+        }
+        
+        .btn-download-solution {
+            background: #1565c0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Tablet adjustments (light touch) */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem !important;
+            }
+            
+            /* Onglets de niveaux avec défilement horizontal */
+            .niveau-tabs {
+                overflow-x: auto !important;
+                display: flex !important;
+                gap: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            .niveau-tabs::-webkit-scrollbar {
+                height: 3px !important;
+            }
+            
+            .niveau-tabs::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #667eea, #764ba2) !important;
+                border-radius: 2px !important;
+            }
+            
+            .niveau-btn {
+                white-space: nowrap !important;
+                flex-shrink: 0 !important;
+            }
+        }
+        
+        /* Mobile Responsive - Version Pro */
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 1rem !important;
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+                text-align: center !important;
+            }
+            
+            .navbar h1 {
+                font-size: 1.3rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            .navbar .user-info {
+                align-items: center !important;
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .container {
+                margin: 1rem auto !important;
+                padding: 0 0.75rem !important;
+            }
+            
+            .welcome-card {
+                padding: 1.25rem !important;
+                margin-bottom: 1.25rem !important;
+            }
+            
+            .university-logo {
+                width: 80px !important;
+                height: 80px !important;
+            }
+            
+            .university-name {
+                font-size: 1rem !important;
+                line-height: 1.3 !important;
+            }
+            
+            .user-info-box {
+                padding: 0.75rem !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .niveau-btn {
+                font-size: 0.85rem !important;
+                padding: 0.6rem 1rem !important;
+            }
+            
+            .niveau-header {
+                font-size: 1.1rem !important;
+                padding: 0.75rem !important;
+            }
+            
+            /* Optimisation des matières */
+            .matiere-card {
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .matiere-header {
+                padding: 0.75rem !important;
+            }
+            
+            .matiere-header h3 {
+                font-size: 0.95rem !important;
+            }
+            
+            .matiere-toggle {
+                font-size: 0.9rem !important;
+                padding: 0.4rem !important;
+            }
+            
+            /* Optimisation des chapitres */
+            .chapitre-header {
+                padding: 0.65rem 0.85rem !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .chapitre-toggle {
+                font-size: 0.85rem !important;
+            }
+            
+            .chapitre-content {
+                padding: 0.85rem !important;
+            }
+            
+            /* Optimisation des sections de contenu */
+            .content-section {
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .section-header {
+                padding: 0.6rem 0.85rem !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .section-body {
+                padding: 0.85rem !important;
+                font-size: 0.9rem !important;
+                line-height: 1.5 !important;
+            }
+            
+            /* Boutons d'action optimisés */
+            .btn-read,
+            .btn-download {
+                font-size: 0.75rem !important;
+                padding: 0.4rem 0.7rem !important;
+                white-space: nowrap !important;
+            }
+            
+            .action-buttons {
+                gap: 0.4rem !important;
+                flex-wrap: wrap !important;
+            }
+            
+            /* Notification Center */
+            .notification-center {
+                font-size: 0.9rem !important;
+            }
+            
+            .notification-item {
+                padding: 0.75rem !important;
+                font-size: 0.85rem !important;
+            }
+            
+            /* === POPUP DE NOTIFICATIONS - MOBILE PRO === */
+            .notification-popup {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                max-height: 100vh !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+            
+            .notification-header {
+                padding: 1rem 0.75rem !important;
+            }
+            
+            .notification-header h3 {
+                font-size: 1rem !important;
+            }
+            
+            .notification-list {
+                max-height: calc(100vh - 70px) !important;
+            }
+            
+            .notification-item {
+                padding: 0.75rem !important;
+            }
+            
+            .notification-message {
+                font-size: 0.85rem !important;
+                line-height: 1.4 !important;
+            }
+            
+            .notification-time {
+                font-size: 0.7rem !important;
+            }
+            
+            .notification-icon-btn {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 1rem !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 0.75rem !important;
+            }
+            
+            .navbar h1 {
+                font-size: 1.1rem !important;
+            }
+            
+            .container {
+                margin: 0.5rem auto !important;
+                padding: 0 0.5rem !important;
+            }
+            
+            .welcome-card {
+                padding: 1rem !important;
+            }
+            
+            .university-logo {
+                width: 70px !important;
+                height: 70px !important;
+            }
+            
+            .university-name {
+                font-size: 0.95rem !important;
+            }
+            
+            .niveau-btn {
+                font-size: 0.8rem !important;
+                padding: 0.5rem 0.85rem !important;
+            }
+            
+            .matiere-header h3 {
+                font-size: 0.9rem !important;
+            }
+            
+            .chapitre-header {
+                padding: 0.6rem 0.75rem !important;
+                font-size: 0.85rem !important;
+            }
+            
+            .btn-read,
+            .btn-download {
+                font-size: 0.7rem !important;
+                padding: 0.35rem 0.6rem !important;
+            }
+            
+            /* === POPUP DE NOTIFICATIONS - TRÈS PETITS ÉCRANS === */
+            .notification-header h3 {
+                font-size: 0.95rem !important;
+            }
+            
+            .notification-item {
+                padding: 0.65rem !important;
+            }
+            
+            .notification-message {
+                font-size: 0.8rem !important;
+            }
+            
+            .notification-time {
+                font-size: 0.65rem !important;
+            }
+            
+            .notification-icon-btn {
+                width: 34px !important;
+                height: 34px !important;
+                font-size: 0.95rem !important;
+            }
+            
+            .notification-header {
+                padding: 0.85rem 0.6rem !important;
+            }
+        }
+        
+        /* Styles pour les commentaires */
+        .commentaires-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .commentaires-section h4 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .commentaire-form {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .commentaire-form textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .commentaire-form button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+        
+        .commentaire-form button:hover {
+            background: #5568d3;
+        }
+        
+        .commentaire-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid #667eea;
+        }
+        
+        .commentaire-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .commentaire-auteur {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .commentaire-auteur.prof {
+            color: #667eea;
+        }
+        
+        .commentaire-auteur.etudiant {
+            color: #4caf50;
+        }
+        
+        .commentaire-date {
+            font-size: 0.85rem;
+            color: #999;
+        }
+        
+        .commentaire-texte {
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .commentaire-delete {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        
+        .commentaire-delete:hover {
+            background: #d32f2f;
+        }
+        
+        .commentaire-repondre {
+            background: transparent;
+            color: #667eea;
+            border: 1px solid #667eea;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            transition: background 0.2s, color 0.2s;
+        }
+        
+        .commentaire-repondre:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .commentaires-vide {
+            text-align: center;
+            color: #999;
+            padding: 2rem;
+            font-style: italic;
+        }
+        
+        .commentaires-section h4 {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .commentaires-section h4:hover {
+            opacity: 0.8;
+        }
+        
+        .commentaires-toggle-arrow {
+            display: inline-block;
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+        }
+        
+        .commentaires-toggle-arrow.open {
+            transform: rotate(90deg);
+        }
+        
+        .commentaires-content {
+            display: none;
+            margin-top: 1rem;
+        }
+        
+        .commentaires-content.show {
+            display: block;
+        }
+        
+        /* Notifications styles */
+        .notification-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.3rem;
+            border-radius: 50%;
+            transition: background 0.3s;
+            display: inline-block;
+        }
+        
+        .notification-icon:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .notification-popup {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 2rem;
+            width: 350px;
+            max-height: 500px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .notification-popup.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .notification-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notification-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .notification-header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .notification-icon-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .notification-icon-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.1);
+        }
+        
+        .notification-icon-btn.delete-all:hover {
+            background: rgba(255, 68, 68, 0.4);
+        }
+        
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .notification-item.unread {
+            background: #e3f2fd;
+        }
+        
+        .notification-item.unread:hover {
+            background: #bbdefb;
+        }
+        
+        .notification-dot {
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            border-radius: 50%;
+            margin-top: 0.3rem;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-message {
+            color: #333;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .notification-time {
+            color: #666;
+            font-size: 0.75rem;
+        }
+        
+        .notification-empty {
+            padding: 2rem;
+            text-align: center;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <h1>📚 Étude LINE - Étudiant</h1>
+            <div class="notification-icon" id="notification-bell" onclick="toggleNotifications()">
+                🔔
+                <span class="notification-badge" id="notification-count" style="display: none;">0</span>
+            </div>
+        </div>
+        <div class="user-info" style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/logout">Déconnexion</a>
+        </div>
+    </div>
+    
+    <!-- Popup de notifications -->
+    <div class="notification-popup" id="notification-popup">
+        <div class="notification-header">
+            <h3>🔔 Notifications</h3>
+            <div class="notification-header-actions">
+                <button class="notification-icon-btn" onclick="markAllAsRead()" title="Marquer tout comme lu">✓</button>
+                <button class="notification-icon-btn delete-all" onclick="deleteAllNotifications()" title="Supprimer tout">🗑️</button>
+            </div>
+        </div>
+        <div class="notification-list" id="notification-list">
+            <div class="notification-empty">Aucune notification</div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="welcome-card">
+            <div class="university-welcome">
+                <h2 class="university-name">
+                    {{ student_universite.nom if student_universite else "UNIVERSITÉ INCONNUE" }}
+                </h2>
+                {% if student_universite and student_universite.logo_url %}
+                    <img src="{{ student_universite.logo_url }}" alt="Logo {{ student_universite.nom }}" class="university-logo">
+                {% endif %}
+                <div class="user-info-box">
+                    <p><strong>👨‍🎓 Étudiant :</strong> {{ student.prenom }} {{ student.nom }}</p>
+                    <p><strong>📚 Niveau :</strong> 
+                        {% if student.niveau == 'L1' %}Licence 1
+                        {% elif student.niveau == 'L2' %}Licence 2
+                        {% elif student.niveau == 'L3' %}Licence 3
+                        {% elif student.niveau == 'M1' %}Master 1
+                        {% elif student.niveau == 'M2' %}Master 2
+                        {% elif student.niveau == 'BTS1' %}BTS 1
+                        {% elif student.niveau == 'BTS2' %}BTS 2
+                        {% elif student.niveau == 'BTS3' %}BTS 3
+                        {% elif student.niveau == 'BTS4' %}BTS 4
+                        {% else %}{{ student.niveau }}
+                        {% endif %}
+                    </p>
+                    {% if student.universite %}
+                    <p><strong>🏛️ Université :</strong> {{ student.universite }}</p>
+                    {% endif %}
+                    {% if student.ufr %}
+                    <p><strong>🏢 UFR :</strong> {{ student.ufr }}</p>
+                    {% endif %}
+                    {% if student.filiere %}
+                    <p><strong>📖 Filière :</strong> {{ student.filiere }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bouton de passage en classe supérieure -->
+        <div id="passage-classe-container" style="display: flex; justify-content: center; margin: 1rem 0;">
+            <button onclick="openPassageModal()" 
+                    style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); transition: all 0.3s ease; width: 280px; text-align: center;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(139, 92, 246, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(139, 92, 246, 0.3)';">
+                🎓 Passer en classe supérieure
+            </button>
+        </div>
+        
+        <!-- Bouton pour voir les messages -->
+        {% if messages_actifs %}
+        <div id="messages-button-container" style="display: flex; justify-content: center; margin: 1rem 0;">
+            <a href="/messages"
+                    style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s ease; position: relative; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 280px;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(16, 185, 129, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.3)';">
+                <span id="messages-badge" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 22px; height: 22px; display: none; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;">0</span>
+                ✉️ Voir mes messages
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Bouton pour les cours en ligne -->
+        {% if cours_en_ligne_actifs %}
+        <div style="display: flex; justify-content: center; margin: 1rem 0;">
+            <a href="/courses/view"
+                    style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 280px;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(245, 158, 11, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.3)';">
+                📹 Cours en ligne
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Bouton Mes Documents -->
+        <div style="display: flex; justify-content: center; margin: 1rem 0;">
+            <a href="/etudiant/mes-documents"
+                    style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; width: 280px; text-decoration: none;"
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(99, 102, 241, 0.4)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(99, 102, 241, 0.3)';">
+                📁 Mes Documents personnels
+            </a>
+        </div>
+
+        <!-- ============ ÉTAGÈRE DE DOCUMENTS ============ -->
+        <div id="documents-section" style="display: none; margin: 1.5rem 0;">
+            <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;">
+                <!-- En-tête étagère -->
+                <div style="background: linear-gradient(135deg, #6366f1, #4f46e5); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="color:white;">
+                        <h3 style="margin:0; font-size:1.2rem;">📚 Mon Étagère de Documents</h3>
+                        <p style="margin:0.25rem 0 0; font-size:0.85rem; opacity:0.85;">Rangez, consultez et gérez vos fichiers personnels</p>
+                    </div>
+                    <button onclick="openUploadModal()" style="background:white; color:#4f46e5; border:none; padding:0.6rem 1.1rem; border-radius:8px; font-weight:600; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
+                        ➕ Ajouter
+                    </button>
+                </div>
+
+                <!-- Filtres rapides -->
+                <div style="padding:1rem 1.5rem; border-bottom:1px solid #f1f5f9; display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+                    <span style="font-size:0.85rem; color:#64748b; font-weight:500;">Filtrer :</span>
+                    <button onclick="filterDocs('all')" id="filter-all" class="doc-filter-btn active-filter" style="padding:0.3rem 0.8rem; border-radius:20px; border:1.5px solid #6366f1; background:#6366f1; color:white; font-size:0.8rem; cursor:pointer; font-weight:500;">Tous</button>
+                    <button onclick="filterDocs('pdf')" id="filter-pdf" class="doc-filter-btn" style="padding:0.3rem 0.8rem; border-radius:20px; border:1.5px solid #e2e8f0; background:white; color:#64748b; font-size:0.8rem; cursor:pointer; font-weight:500;">📄 PDF</button>
+                    <button onclick="filterDocs('image')" id="filter-image" class="doc-filter-btn" style="padding:0.3rem 0.8rem; border-radius:20px; border:1.5px solid #e2e8f0; background:white; color:#64748b; font-size:0.8rem; cursor:pointer; font-weight:500;">🖼️ Images</button>
+                    <button onclick="filterDocs('doc')" id="filter-doc" class="doc-filter-btn" style="padding:0.3rem 0.8rem; border-radius:20px; border:1.5px solid #e2e8f0; background:white; color:#64748b; font-size:0.8rem; cursor:pointer; font-weight:500;">📝 Word/Excel</button>
+                    <button onclick="filterDocs('autre')" id="filter-autre" class="doc-filter-btn" style="padding:0.3rem 0.8rem; border-radius:20px; border:1.5px solid #e2e8f0; background:white; color:#64748b; font-size:0.8rem; cursor:pointer; font-weight:500;">📦 Autres</button>
+                    <input type="text" id="doc-search" placeholder="🔍 Rechercher..." oninput="searchDocs(this.value)"
+                        style="margin-left:auto; padding:0.35rem 0.8rem; border:1.5px solid #e2e8f0; border-radius:20px; font-size:0.85rem; outline:none; width:180px;">
+                </div>
+
+                <!-- Grille de documents -->
+                <div style="padding:1.5rem;">
+                    <div id="docs-loading" style="text-align:center; padding:2rem; color:#94a3b8;">
+                        ⏳ Chargement de vos documents...
+                    </div>
+                    <div id="docs-empty" style="display:none; text-align:center; padding:3rem 1rem;">
+                        <div style="font-size:3rem; margin-bottom:1rem;">📂</div>
+                        <p style="color:#94a3b8; font-size:1rem;">Votre étagère est vide. Ajoutez votre premier document !</p>
+                        <button onclick="openUploadModal()" style="margin-top:1rem; background:#6366f1; color:white; border:none; padding:0.7rem 1.5rem; border-radius:8px; font-size:0.95rem; cursor:pointer; font-weight:600;">➕ Ajouter un document</button>
+                    </div>
+                    <div id="docs-grid" style="display:none; display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Upload -->
+        <div id="upload-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:none; align-items:center; justify-content:center; padding:1rem;">
+            <div style="background:white; border-radius:16px; width:100%; max-width:500px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
+                <div style="background:linear-gradient(135deg, #6366f1, #4f46e5); padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; color:white; font-size:1.1rem;">➕ Ajouter un document</h3>
+                    <button onclick="closeUploadModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer; line-height:1;">×</button>
+                </div>
+                <form id="upload-form" style="padding:1.5rem;" onsubmit="submitUpload(event)">
+                    <div style="margin-bottom:1rem;">
+                        <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Nom du document *</label>
+                        <input type="text" id="upload-nom" required placeholder="Ex: Devoir de Maths S1, Carte étudiant..."
+                            style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.95rem; outline:none;"
+                            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'">
+                    </div>
+                    <div style="margin-bottom:1rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                        <div>
+                            <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Type</label>
+                            <select id="upload-type" style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.9rem; outline:none; background:white;">
+                                <option value="">-- Choisir --</option>
+                                <option value="Devoir">📝 Devoir</option>
+                                <option value="Rapport">📋 Rapport</option>
+                                <option value="Carte étudiant">🪪 Carte étudiant</option>
+                                <option value="Attestation">📜 Attestation</option>
+                                <option value="Résumé">📑 Résumé de cours</option>
+                                <option value="Exercice">✏️ Exercice</option>
+                                <option value="Autre">📦 Autre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Matière</label>
+                            <select id="upload-matiere" style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.9rem; outline:none; background:white;">
+                                <option value="">-- Général --</option>
+                                {% for mat in matieres %}
+                                <option value="{{ mat.id }}">{{ mat.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Description (optionnel)</label>
+                        <textarea id="upload-description" rows="2" placeholder="Courte description..."
+                            style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.9rem; outline:none; resize:vertical;"
+                            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+                    </div>
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Fichier * <span style="font-weight:400; color:#94a3b8;">(PDF, image, Word, Excel — max 50 Mo)</span></label>
+                        <div id="drop-zone"
+                            style="border:2px dashed #cbd5e1; border-radius:10px; padding:1.5rem; text-align:center; cursor:pointer; transition:all 0.2s; background:#f8fafc;"
+                            onclick="document.getElementById('upload-fichier').click()"
+                            ondragover="event.preventDefault(); this.style.borderColor='#6366f1'; this.style.background='#eef2ff';"
+                            ondragleave="this.style.borderColor='#cbd5e1'; this.style.background='#f8fafc';"
+                            ondrop="handleDrop(event)">
+                            <div id="drop-label">
+                                <span style="font-size:2rem;">📎</span>
+                                <p style="margin:0.5rem 0 0; color:#64748b; font-size:0.9rem;">Glissez un fichier ici ou cliquez pour choisir</p>
+                            </div>
+                            <div id="drop-selected" style="display:none; color:#4f46e5; font-weight:600; font-size:0.9rem;"></div>
+                        </div>
+                        <input type="file" id="upload-fichier" style="display:none;" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.mp4,.mp3" onchange="handleFileSelect(this)">
+                    </div>
+                    <div id="upload-progress" style="display:none; margin-bottom:1rem;">
+                        <div style="background:#e2e8f0; border-radius:8px; height:8px; overflow:hidden;">
+                            <div id="upload-progress-bar" style="height:100%; background:linear-gradient(90deg,#6366f1,#4f46e5); width:0%; transition:width 0.3s;"></div>
+                        </div>
+                        <p id="upload-status" style="margin:0.5rem 0 0; font-size:0.85rem; color:#6366f1; text-align:center;"></p>
+                    </div>
+                    <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                        <button type="button" onclick="closeUploadModal()" style="padding:0.7rem 1.25rem; border:1.5px solid #e2e8f0; background:white; border-radius:8px; font-size:0.95rem; cursor:pointer; color:#64748b; font-weight:500;">Annuler</button>
+                        <button type="submit" id="upload-submit-btn" style="padding:0.7rem 1.5rem; background:#6366f1; color:white; border:none; border-radius:8px; font-size:0.95rem; cursor:pointer; font-weight:600;">⬆️ Uploader</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Visionneuse intégrée -->
+        <div id="viewer-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:10000; flex-direction:column;">
+            <div style="background:#1e293b; padding:0.75rem 1.25rem; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+                <div>
+                    <span id="viewer-title" style="color:white; font-weight:600; font-size:1rem;"></span>
+                    <span id="viewer-type" style="color:#94a3b8; font-size:0.8rem; margin-left:0.75rem;"></span>
+                </div>
+                <div style="display:flex; gap:0.75rem; align-items:center;">
+                    <button id="viewer-download-btn" onclick="" style="background:#6366f1; color:white; border:none; padding:0.5rem 1rem; border-radius:7px; font-size:0.85rem; cursor:pointer; font-weight:600;">⬇️ Télécharger</button>
+                    <button onclick="closeViewer()" style="background:#ef4444; color:white; border:none; padding:0.5rem 1rem; border-radius:7px; font-size:0.85rem; cursor:pointer; font-weight:600;">✕ Fermer</button>
+                </div>
+            </div>
+            <div id="viewer-content" style="flex:1; overflow:auto; display:flex; align-items:center; justify-content:center; padding:1rem;"></div>
+        </div>
+
+        <!-- Modal Modifier document -->
+        <div id="edit-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
+            <div style="background:white; border-radius:16px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
+                <div style="background:linear-gradient(135deg, #0ea5e9, #0284c7); padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; color:white; font-size:1.1rem;">✏️ Modifier le document</h3>
+                    <button onclick="closeEditModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer; line-height:1;">×</button>
+                </div>
+                <div style="padding:1.5rem;">
+                    <input type="hidden" id="edit-doc-id">
+                    <div style="margin-bottom:1rem;">
+                        <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Nom du document *</label>
+                        <input type="text" id="edit-nom" style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.95rem; outline:none;" onfocus="this.style.borderColor='#0ea5e9'" onblur="this.style.borderColor='#e2e8f0'">
+                    </div>
+                    <div style="margin-bottom:1rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                        <div>
+                            <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Type</label>
+                            <select id="edit-type" style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.9rem; outline:none; background:white;">
+                                <option value="">-- Choisir --</option>
+                                <option value="Devoir">📝 Devoir</option>
+                                <option value="Rapport">📋 Rapport</option>
+                                <option value="Carte étudiant">🪪 Carte étudiant</option>
+                                <option value="Attestation">📜 Attestation</option>
+                                <option value="Résumé">📑 Résumé de cours</option>
+                                <option value="Exercice">✏️ Exercice</option>
+                                <option value="Autre">📦 Autre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Matière</label>
+                            <select id="edit-matiere" style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.9rem; outline:none; background:white;">
+                                <option value="">-- Général --</option>
+                                {% for mat in matieres %}
+                                <option value="{{ mat.id }}">{{ mat.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:1.25rem;">
+                        <label style="display:block; font-weight:600; margin-bottom:0.4rem; color:#374151; font-size:0.9rem;">Description</label>
+                        <textarea id="edit-description" rows="2" style="width:100%; padding:0.7rem 1rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.9rem; outline:none; resize:vertical;" onfocus="this.style.borderColor='#0ea5e9'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+                    </div>
+                    <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                        <button onclick="closeEditModal()" style="padding:0.7rem 1.25rem; border:1.5px solid #e2e8f0; background:white; border-radius:8px; font-size:0.95rem; cursor:pointer; color:#64748b; font-weight:500;">Annuler</button>
+                        <button onclick="submitEdit()" style="padding:0.7rem 1.5rem; background:#0ea5e9; color:white; border:none; border-radius:8px; font-size:0.95rem; cursor:pointer; font-weight:600;">💾 Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <p>⏳ Chargement de vos contenus...</p>
+        </div>
+        
+        <!-- Moteur de recherche de chapitres -->
+        <div id="search-container" style="display: none; position: sticky; top: 0; z-index: 100; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding-bottom: 1rem; margin-bottom: 0;">
+            <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <label for="chapitre-search" style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: #333;">
+                    🔍 Rechercher un chapitre
+                </label>
+                <input 
+                    type="text" 
+                    id="chapitre-search" 
+                    placeholder="Tapez le titre ou le numéro du chapitre..."
+                    style="width: 100%; padding: 0.875rem 1.25rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease;"
+                    oninput="searchChapitres(this.value)"
+                    onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                    onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none'"
+                >
+                <div id="search-results" style="margin-top: 0.75rem; font-size: 0.9rem; color: #666;"></div>
+            </div>
+        </div>
+        
+        <div id="content-hierarchy" style="display: none; padding-top: 1.5rem;">
+            <!-- Hierarchical content will be loaded here -->
+        </div>
+        
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <h3>📭 Aucun contenu disponible</h3>
+            <p>Il n'y a pas encore de contenu publié pour votre niveau et filière.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Informations de l'utilisateur connecté
+        const currentUser = {
+            id: {{ student.id }},
+            type: 'etudiant'
+        };
+
+        // Statut abonnement
+        const isSubscribed = {{ 'true' if subscription_active else 'false' }};
+        const hasPendingPayment = {{ 'true' if has_pending_payment else 'false' }};
+        const lastPaymentStatus = {{ ('"' + last_payment_status + '"') | safe if last_payment_status else 'null' }};
+        
+        // Load hierarchical content
+        async function loadContent() {
+            try {
+                const response = await fetch('/api/chapitres/hierarchy');
+                const data = await response.json();
+                
+                const loadingEl = document.getElementById('loading');
+                const contentEl = document.getElementById('content-hierarchy');
+                const emptyEl = document.getElementById('empty-state');
+                const searchEl = document.getElementById('search-container');
+                
+                loadingEl.style.display = 'none';
+                
+                if (!data.hierarchy || data.hierarchy.length === 0) {
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+                
+                searchEl.style.display = 'block';
+                contentEl.style.display = 'block';
+                contentEl.innerHTML = renderHierarchy(data.hierarchy);
+                
+                // Après le chargement du contenu, vérifier s'il faut scroller vers un chapitre
+                setTimeout(scrollToChapterFromHash, 100);
+            } catch (error) {
+                console.error('Error loading content:', error);
+                document.getElementById('loading').innerHTML = '<p style="color: red;">❌ Erreur lors du chargement</p>';
+            }
+        }
+        
+        // Fonction de recherche de chapitres
+        function searchChapitres(query) {
+            const searchQuery = query.toLowerCase().trim();
+            const chapitres = document.querySelectorAll('.chapitre-item');
+            const matieres = document.querySelectorAll('.matiere-item');
+            const semestres = document.querySelectorAll('.semestre-section');
+            let visibleCount = 0;
+            let totalCount = chapitres.length;
+            
+            // Si la recherche est vide, afficher tout
+            if (searchQuery === '') {
+                chapitres.forEach(ch => ch.style.display = 'block');
+                matieres.forEach(mat => mat.style.display = 'block');
+                semestres.forEach(sem => sem.style.display = 'block');
+                document.getElementById('search-results').textContent = '';
+                return;
+            }
+            
+            // Masquer tous les chapitres d'abord
+            chapitres.forEach(ch => ch.style.display = 'none');
+            
+            // Filtrer et afficher les chapitres correspondants
+            chapitres.forEach(chapitre => {
+                const titre = chapitre.querySelector('.chapitre-title');
+                if (titre && titre.textContent.toLowerCase().includes(searchQuery)) {
+                    chapitre.style.display = 'block';
+                    visibleCount++;
+                    
+                    // Afficher les parents (semestre et matière)
+                    const semestreParent = chapitre.closest('.semestre-section');
+                    const matiereParent = chapitre.closest('.matiere-item');
+                    if (semestreParent) semestreParent.style.display = 'block';
+                    if (matiereParent) {
+                        matiereParent.style.display = 'block';
+                        // Ouvrir automatiquement la matière
+                        const matiereContent = matiereParent.querySelector('.matiere-content');
+                        if (matiereContent && !matiereContent.classList.contains('show')) {
+                            matiereContent.classList.add('show');
+                            const arrow = matiereParent.querySelector('.matiere-header .toggle-arrow');
+                            if (arrow) arrow.classList.add('open');
+                        }
+                    }
+                }
+            });
+            
+            // Masquer les semestres et matières vides
+            semestres.forEach(sem => {
+                const visibleChaps = sem.querySelectorAll('.chapitre-item[style*="display: block"]');
+                if (visibleChaps.length === 0) {
+                    sem.style.display = 'none';
+                }
+            });
+            
+            matieres.forEach(mat => {
+                const visibleSems = mat.querySelectorAll('.semestre-section[style*="display: block"]');
+                if (visibleSems.length === 0) {
+                    mat.style.display = 'none';
+                }
+            });
+            
+            // Afficher le résultat de la recherche
+            const resultsEl = document.getElementById('search-results');
+            if (visibleCount === 0) {
+                resultsEl.innerHTML = '<span style="color: #ef4444;">❌ Aucun chapitre trouvé</span>';
+            } else {
+                resultsEl.innerHTML = `<span style="color: #10b981;">✓ ${visibleCount} chapitre${visibleCount > 1 ? 's' : ''} trouvé${visibleCount > 1 ? 's' : ''}</span>`;
+            }
+        }
+        
+        function getNiveauComplet(code) {
+            const niveaux = {
+                'L1': '📘 Licence 1 (L1)',
+                'L2': '📗 Licence 2 (L2)',
+                'L3': '📙 Licence 3 (L3)',
+                'M1': '📕 Master 1 (M1)',
+                'M2': '📔 Master 2 (M2)',
+                'BTS1': '🎓 BTS 1',
+                'BTS2': '🎓 BTS 2',
+                'BTS3': '🎓 BTS 3',
+                'BTS4': '🎓 BTS 4'
+            };
+            return niveaux[code] || code;
+        }
+        
+        function renderHierarchy(hierarchy) {
+            return hierarchy.map(niveau => `
+                <div class="niveau-card niveau-${niveau.niveau}">
+                    <div class="niveau-header">${getNiveauComplet(niveau.niveau)}</div>
+                    ${niveau.matieres.map((matiere, mIdx) => `
+                        <div class="matiere-item">
+                            <div class="matiere-header" onclick="toggleMatiere(this)">
+                                <h3>📚 ${matiere.matiere_nom}</h3>
+                                <span class="toggle-arrow">▸</span>
+                            </div>
+                            <div class="matiere-content">
+                                ${matiere.semestres.map(semestre => `
+                                    <div class="semestre-section">
+                                        <div class="semestre-title">${semestre.semestre}</div>
+                                        ${semestre.chapitres.map(chapitre => `
+                                            <div class="chapitre-item" id="chapitre-${chapitre.id}">
+                                                <a href="/chapitre/${chapitre.id}/etudiant" style="text-decoration: none; color: inherit; display: block;">
+                                                    <div class="chapitre-header" style="cursor: pointer;">
+                                                        <span class="chapitre-title">📖 Chapitre ${chapitre.numero} : ${chapitre.titre}</span>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+        
+        function renderChapitreContent(chapitre) {
+            let html = '';
+            
+            // Cours
+            if (chapitre.cours_texte || chapitre.cours_fichier_nom) {
+                html += '<div class="content-section">';
+                html += `<h4 onclick="toggleContentSection(${chapitre.id}, 'cours')" style="cursor: pointer;">
+                    <span id="arrow-cours-${chapitre.id}" style="color: #666;">▸</span> 📖 Cours
+                </h4>`;
+                html += `<div id="content-cours-${chapitre.id}" style="display: none;">`;
+                if (chapitre.cours_texte) {
+                    html += `<div class="content-text">${escapeHtml(chapitre.cours_texte)}</div>`;
+                }
+                if (chapitre.cours_fichier_nom) {
+                    const files = chapitre.cours_fichier_nom.split('|||');
+                    const paths = chapitre.cours_fichier_path.split('|||');
+                    files.forEach((file, idx) => {
+                        html += `
+                            <div class="file-actions">
+                                <div class="file-name file-name-cours">📎 ${escapeHtml(file)}</div>
+                                <div class="file-buttons">
+                                    <a href="/lecteur/${paths[idx]}" class="btn-read btn-read-cours">
+                                        👁️ Lire
+                                    </a>
+                                    <a href="/files/download/${paths[idx]}" class="btn-download btn-download-cours download-button">
+                                        ⬇️ Télécharger
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                html += '</div>';
+                html += '</div>';
+            }
+            
+            // Exercices
+            if (chapitre.exercice_texte || chapitre.exercice_fichier_nom) {
+                html += '<div class="content-section">';
+                html += `<h4 onclick="toggleContentSection(${chapitre.id}, 'exercices')" style="cursor: pointer;">
+                    <span id="arrow-exercices-${chapitre.id}" style="color: #666;">▸</span> ✍️ Exercices
+                </h4>`;
+                html += `<div id="content-exercices-${chapitre.id}" style="display: none;">`;
+                if (!isSubscribed) {
+                    html += `<div style="text-align:center; padding:1.5rem 1rem; border:2px dashed #f59e0b; border-radius:12px; background:#fffbeb; margin:0.5rem 0;">
+                        <div style="font-size:1.8rem;">🔒</div>
+                        <p style="color:#b45309; font-weight:700; margin:0.4rem 0 0.2rem; font-size:1rem;">Accès réservé aux abonnés</p>
+                        <p style="color:#d97706; font-weight:800; margin:0 0 0.75rem;">490 FCFA / 2 mois</p>
+                        <button onclick="document.getElementById('modal-payment-dashboard').style.display='flex'"
+                            style="background:linear-gradient(135deg,#d97706,#f59e0b); color:white; border:none; padding:0.55rem 1.5rem; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.9rem;">
+                            S'abonner
+                        </button>
+                    </div>`;
+                } else {
+                    if (chapitre.exercice_texte) {
+                        html += `<div class="content-text">${escapeHtml(chapitre.exercice_texte)}</div>`;
+                    }
+                    if (chapitre.exercice_fichier_nom) {
+                        const files = chapitre.exercice_fichier_nom.split('|||');
+                        const paths = chapitre.exercice_fichier_path.split('|||');
+                        files.forEach((file, idx) => {
+                            html += `
+                                <div class="file-actions">
+                                    <div class="file-name file-name-exercice">📎 ${escapeHtml(file)}</div>
+                                    <div class="file-buttons">
+                                        <a href="/lecteur/${paths[idx]}" class="btn-read btn-read-exercice">
+                                            👁️ Lire
+                                        </a>
+                                        <a href="/files/download/${paths[idx]}" class="btn-download btn-download-exercice download-button">
+                                            ⬇️ Télécharger
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+                html += '</div>';
+                html += '</div>';
+            }
+
+            // Solutions
+            if (chapitre.solution_texte || chapitre.solution_fichier_nom) {
+                html += '<div class="content-section">';
+                html += `<h4 onclick="toggleContentSection(${chapitre.id}, 'solutions')" style="cursor: pointer;">
+                    <span id="arrow-solutions-${chapitre.id}" style="color: #666;">▸</span> ✅ Solutions
+                </h4>`;
+                html += `<div id="content-solutions-${chapitre.id}" style="display: none;">`;
+                if (!isSubscribed) {
+                    html += `<div style="text-align:center; padding:1.5rem 1rem; border:2px dashed #c084fc; border-radius:12px; background:#faf5ff; margin:0.5rem 0;">
+                        <div style="font-size:1.8rem;">🔒</div>
+                        <p style="color:#7C3AED; font-weight:700; margin:0.4rem 0 0.2rem; font-size:1rem;">Accès réservé aux abonnés</p>
+                        <p style="color:#7C3AED; font-weight:800; margin:0 0 0.75rem;">490 FCFA / 2 mois</p>
+                        <button onclick="document.getElementById('modal-payment-dashboard').style.display='flex'"
+                            style="background:linear-gradient(135deg,#7C3AED,#6366f1); color:white; border:none; padding:0.55rem 1.5rem; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.9rem;">
+                            S'abonner
+                        </button>
+                    </div>`;
+                } else {
+                    if (chapitre.solution_texte) {
+                        html += `<div class="content-text">${escapeHtml(chapitre.solution_texte)}</div>`;
+                    }
+                    if (chapitre.solution_fichier_nom) {
+                        const files = chapitre.solution_fichier_nom.split('|||');
+                        const paths = chapitre.solution_fichier_path.split('|||');
+                        files.forEach((file, idx) => {
+                            html += `
+                                <div class="file-actions">
+                                    <div class="file-name file-name-solution">📎 ${escapeHtml(file)}</div>
+                                    <div class="file-buttons">
+                                        <a href="/lecteur/${paths[idx]}" class="btn-read btn-read-solution">
+                                            👁️ Lire
+                                        </a>
+                                        <a href="/files/download/${paths[idx]}" class="btn-download btn-download-solution download-button">
+                                            ⬇️ Télécharger
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+                html += '</div>';
+                html += '</div>';
+            }
+            
+            // Section Commentaires
+            html += `
+                <div class="commentaires-section">
+                    <h4 onclick="toggleCommentaires(${chapitre.id})">
+                        <span class="commentaires-toggle-arrow" id="commentaires-arrow-${chapitre.id}">▸</span>
+                        💬 Commentaires & Discussion
+                    </h4>
+                    
+                    <div class="commentaires-content" id="commentaires-content-${chapitre.id}">
+                        <div class="commentaire-form">
+                            <textarea id="commentaire-text-${chapitre.id}" placeholder="Écrivez votre commentaire ou posez une question..."></textarea>
+                            <button onclick="ajouterCommentaire(${chapitre.id})">📤 Publier</button>
+                        </div>
+                        
+                        <div id="commentaires-list-${chapitre.id}">
+                            <div class="loading">⏳ Chargement des commentaires...</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Charger les commentaires
+            setTimeout(() => chargerCommentaires(chapitre.id), 100);
+            
+            return html;
+        }
+        
+        function toggleMatiere(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.toggle-arrow');
+            
+            content.classList.toggle('show');
+            arrow.classList.toggle('open');
+        }
+        
+        function toggleChapitre(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.toggle-arrow');
+            
+            content.classList.toggle('show');
+            arrow.classList.toggle('open');
+        }
+        
+        function toggleCommentaires(chapitreId) {
+            const content = document.getElementById(`commentaires-content-${chapitreId}`);
+            const arrow = document.getElementById(`commentaires-arrow-${chapitreId}`);
+            
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                arrow.classList.remove('open');
+            } else {
+                content.classList.add('show');
+                arrow.classList.add('open');
+            }
+        }
+        
+        // Fonction pour toggle les sections Cours/Exercices/Solutions
+        function toggleContentSection(chapitreId, type) {
+            const content = document.getElementById(`content-${type}-${chapitreId}`);
+            const arrow = document.getElementById(`arrow-${type}-${chapitreId}`);
+            
+            if (content.style.display === 'none' || content.style.display === '') {
+                content.style.display = 'block';
+                arrow.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                arrow.textContent = '▸';
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // === FONCTIONS COMMENTAIRES ===
+        
+        async function chargerCommentaires(chapitreId) {
+            const container = document.getElementById(`commentaires-list-${chapitreId}`);
+            
+            try {
+                const response = await fetch(`/api/commentaires/${chapitreId}`);
+                const commentaires = await response.json();
+                
+                if (commentaires.length === 0) {
+                    container.innerHTML = '<div class="commentaires-vide">Aucun commentaire pour le moment. Soyez le premier à commenter !</div>';
+                    return;
+                }
+                
+                container.innerHTML = commentaires.map(c => {
+                    const date = new Date(c.created_at);
+                    const dateStr = date.toLocaleDateString('fr-FR') + ' à ' + date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+                    
+                    // Afficher le bouton supprimer uniquement si l'utilisateur est l'auteur
+                    const isAuthor = (c.auteur_type === currentUser.type && c.auteur_id === currentUser.id);
+                    const deleteButton = isAuthor ? 
+                        `<button class="commentaire-delete" onclick="supprimerCommentaire(${c.id}, ${chapitreId})">🗑️</button>` : '';
+                    
+                    return `
+                        <div class="commentaire-item">
+                            <div class="commentaire-header">
+                                <span class="commentaire-auteur ${c.auteur_type}">
+                                    ${escapeHtml(c.auteur_nom)}
+                                </span>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="commentaire-date">${dateStr}</span>
+                                    ${deleteButton}
+                                </div>
+                            </div>
+                            <div class="commentaire-texte">${escapeHtml(c.texte)}</div>
+                            <button class="commentaire-repondre" data-auteur="${escapeHtml(c.auteur_nom)}" onclick="repondreCommentaire(this)">↩️ Répondre</button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = '<div class="commentaires-vide">Erreur de chargement des commentaires</div>';
+            }
+        }
+        
+        async function ajouterCommentaire(chapitreId) {
+            const textarea = document.getElementById(`commentaire-text-${chapitreId}`);
+            
+            if (!textarea) {
+                alert('Erreur: Zone de texte non trouvée');
+                console.error('Textarea non trouvé pour chapitre:', chapitreId);
+                return;
+            }
+            
+            const texte = textarea.value.trim();
+            
+            if (!texte) {
+                alert('Veuillez écrire un commentaire avant de publier');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/commentaires', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chapitre_id: chapitreId,
+                        texte: texte
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    textarea.value = '';
+                    chargerCommentaires(chapitreId);
+                } else {
+                    alert('Erreur lors de la publication du commentaire');
+                }
+            } catch (error) {
+                alert('Erreur réseau. Veuillez réessayer.');
+            }
+        }
+        
+        async function supprimerCommentaire(commentaireId, chapitreId) {
+            if (!confirm('Voulez-vous vraiment supprimer ce commentaire ?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/commentaires/${commentaireId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    chargerCommentaires(chapitreId);
+                } else {
+                    alert('Vous ne pouvez pas supprimer ce commentaire');
+                }
+            } catch (error) {
+                alert('Erreur lors de la suppression');
+            }
+        }
+        
+        function repondreCommentaire(button) {
+            const auteurNom = button.getAttribute('data-auteur');
+            
+            // Remonter depuis le bouton pour trouver la section commentaires
+            const commentairesSection = button.closest('.commentaires-section');
+            if (!commentairesSection) {
+                console.error('Section commentaires non trouvée');
+                return;
+            }
+            
+            // Trouver le textarea dans cette section
+            const targetTextarea = commentairesSection.querySelector('[id^="commentaire-text-"]');
+            
+            if (targetTextarea) {
+                targetTextarea.value = `@${auteurNom} `;
+                targetTextarea.focus();
+                // Scroll jusqu'au textarea
+                targetTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                console.error('Textarea non trouvé dans la section commentaires');
+            }
+        }
+        
+        // === FONCTIONS NOTIFICATIONS ===
+        
+        // Demander la permission pour les notifications natives
+        let previousNotificationCount = null;
+        let notificationAudio = null;
+        
+        // Pré-charger le son de notification
+        function preloadNotificationSound() {
+            try {
+                notificationAudio = new Audio('/static/notification-sound.wav');
+                notificationAudio.volume = 1.0;  // Volume au maximum
+                notificationAudio.load();
+                console.log('🔊 Son de notification préchargé (volume 100%)');
+            } catch (error) {
+                console.log('Erreur préchargement son:', error);
+            }
+        }
+        
+        // Jouer le son de notification
+        function playNotificationSound() {
+            try {
+                if (notificationAudio) {
+                    notificationAudio.currentTime = 0;  // Recommencer depuis le début
+                    notificationAudio.volume = 1.0;      // Volume au maximum (100%)
+                    notificationAudio.play().then(() => {
+                        console.log('🔊 Son de notification joué à 100% !');
+                    }).catch(error => {
+                        console.log('⚠️ Impossible de jouer le son:', error);
+                    });
+                } else {
+                    console.log('⚠️ Audio non chargé');
+                }
+            } catch (error) {
+                console.log('Erreur lecture son:', error);
+            }
+        }
+        
+        // ── Abonnement Web Push (notifications hors application) ──
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = atob(base64);
+            return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+        }
+
+        async function subscribeToPush() {
+            try {
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+                if (Notification.permission !== 'granted') return;
+                const reg = await navigator.serviceWorker.ready;
+                const resp = await fetch('/api/push/vapid-key');
+                if (!resp.ok) return;
+                const { publicKey } = await resp.json();
+                const sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey)
+                });
+                const subJson = sub.toJSON();
+                await fetch('/api/push/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint: subJson.endpoint,
+                        p256dh: subJson.keys.p256dh,
+                        auth: subJson.keys.auth
+                    })
+                });
+                console.log('✅ Abonnement push enregistré — notifications hors application activées');
+            } catch (e) {
+                console.log('⚠️ Abonnement push impossible:', e);
+            }
+        }
+
+        async function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        console.log('✅ Permission de notification accordée');
+                        if (notificationAudio) {
+                            notificationAudio.play().then(() => {
+                                console.log('✅ Son de notification prêt');
+                            }).catch(e => console.log('Son test ignoré:', e));
+                        }
+                        subscribeToPush();
+                    }
+                } catch (error) {
+                    console.log('Erreur demande permission notification:', error);
+                }
+            } else if ('Notification' in window && Notification.permission === 'granted') {
+                subscribeToPush();
+            }
+        }
+        
+        // Afficher une notification native via Service Worker
+        function showNativeNotification(title, body, icon) {
+            if ('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted') {
+                // Envoyer message au Service Worker pour afficher la notification
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.active.postMessage({
+                        type: 'SHOW_NOTIFICATION',
+                        title: title,
+                        body: body,
+                        icon: icon || '/static/icons/icon-192.png',
+                        url: window.location.href
+                    });
+                });
+            }
+        }
+        
+        // Écouter les messages du Service Worker pour jouer le son
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                console.log('[PWA] Message reçu du Service Worker:', event.data);
+                
+                if (event.data && event.data.type === 'PLAY_NOTIFICATION_SOUND') {
+                    console.log('🔊 [PWA] Demande de lecture du son reçue');
+                    // Jouer le son personnalisé
+                    playNotificationSound();
+                }
+            });
+        }
+        
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                const notifications = await response.json();
+                
+                const notificationList = document.getElementById('notification-list');
+                
+                if (notifications.length === 0) {
+                    notificationList.innerHTML = '<div class="notification-empty">Aucune notification</div>';
+                    return;
+                }
+                
+                notificationList.innerHTML = notifications.map(n => {
+                    const date = new Date(n.created_at);
+                    const timeStr = formatTimeAgo(date);
+                    const unreadClass = n.lue ? '' : 'unread';
+                    const dotHtml = n.lue ? '' : '<div class="notification-dot"></div>';
+                    
+                    return `
+                        <div class="notification-item ${unreadClass}" style="position: relative;">
+                            <div onclick="handleNotificationClick(${n.id}, '${n.lien || ''}')" style="flex: 1; display: flex; gap: 0.8rem; cursor: pointer;">
+                                ${dotHtml}
+                                <div class="notification-content">
+                                    <div class="notification-message">${escapeHtml(n.message)}</div>
+                                    <div class="notification-time">${timeStr}</div>
+                                </div>
+                            </div>
+                            <button onclick="deleteNotification(${n.id}, event)" style="background: none; border: none; color: #999; cursor: pointer; padding: 0.5rem; font-size: 1.2rem; transition: color 0.2s;" onmouseover="this.style.color='#ff4444'" onmouseout="this.style.color='#999'">🗑️</button>
+                        </div>
+                    `;
+                }).join('');
+                
+                updateNotificationCount();
+            } catch (error) {
+                console.error('Erreur lors du chargement des notifications:', error);
+            }
+        }
+        
+        async function updateNotificationCount() {
+            try {
+                const response = await fetch('/api/notifications/count');
+                const data = await response.json();
+                
+                const badge = document.getElementById('notification-count');
+                if (data.count > 0) {
+                    badge.textContent = data.count > 99 ? '99+' : data.count;
+                    badge.style.display = 'flex';
+                    
+                    // Afficher notification native si nouvelle notification
+                    if (previousNotificationCount !== null && data.count > previousNotificationCount) {
+                        const newCount = data.count - previousNotificationCount;
+                        
+                        // 🔊 JOUER LE SON DE NOTIFICATION
+                        playNotificationSound();
+                        
+                        showNativeNotification(
+                            '📚 Étude LINE',
+                            `Vous avez ${newCount} nouvelle${newCount > 1 ? 's' : ''} notification${newCount > 1 ? 's' : ''} !`,
+                            '/static/icons/icon-192.png'
+                        );
+                    }
+                } else {
+                    badge.style.display = 'none';
+                }
+                
+                // Mettre à jour le badge de l'icône PWA (même si l'app est fermée)
+                updateAppBadge(data.count);
+                
+                previousNotificationCount = data.count;
+            } catch (error) {
+                console.error('Erreur lors de la mise à jour du compteur:', error);
+            }
+        }
+        
+        // Fonction pour mettre à jour le badge sur l'icône PWA installée
+        function updateAppBadge(count) {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'UPDATE_BADGE',
+                    count: count
+                });
+                console.log(`🔔 Badge PWA mis à jour: ${count}`);
+            }
+        }
+        
+        function toggleNotifications() {
+            const popup = document.getElementById('notification-popup');
+            popup.classList.toggle('show');
+            
+            if (popup.classList.contains('show')) {
+                loadNotifications();
+            }
+        }
+        
+        async function handleNotificationClick(notificationId, lien) {
+            try {
+                await fetch(`/api/notifications/${notificationId}/lue`, {
+                    method: 'PUT'
+                });
+                
+                loadNotifications();
+                updateNotificationCount();
+                
+                if (lien) {
+                    window.location.href = lien;
+                }
+            } catch (error) {
+                console.error('Erreur lors du marquage de la notification:', error);
+            }
+        }
+        
+        async function markAllAsRead() {
+            try {
+                await fetch('/api/notifications/lire-toutes', {
+                    method: 'PUT'
+                });
+                
+                loadNotifications();
+                updateNotificationCount();
+            } catch (error) {
+                console.error('Erreur lors du marquage de toutes les notifications:', error);
+            }
+        }
+        
+        async function deleteNotification(notificationId, event) {
+            event.stopPropagation(); // Empêcher le clic sur la notification
+            
+            try {
+                await fetch(`/api/notifications/${notificationId}`, {
+                    method: 'DELETE'
+                });
+                
+                loadNotifications();
+                updateNotificationCount();
+            } catch (error) {
+                console.error('Erreur lors de la suppression de la notification:', error);
+            }
+        }
+        
+        async function deleteAllNotifications() {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer toutes vos notifications ?')) {
+                return;
+            }
+            
+            try {
+                await fetch('/api/notifications/supprimer-toutes', {
+                    method: 'DELETE'
+                });
+                
+                loadNotifications();
+                updateNotificationCount();
+            } catch (error) {
+                console.error('Erreur lors de la suppression de toutes les notifications:', error);
+            }
+        }
+        
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'À l\'instant';
+            if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`;
+            if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)}h`;
+            if (seconds < 604800) return `Il y a ${Math.floor(seconds / 86400)}j`;
+            
+            return date.toLocaleDateString('fr-FR');
+        }
+        
+        // Fermer le popup si on clique en dehors
+        document.addEventListener('click', function(event) {
+            const popup = document.getElementById('notification-popup');
+            const bell = document.getElementById('notification-bell');
+            
+            if (popup && bell && !popup.contains(event.target) && !bell.contains(event.target)) {
+                popup.classList.remove('show');
+            }
+        });
+        
+        // Vérifier l'état du passage en classe supérieure
+        async function checkPassageClasseStatus() {
+            try {
+                const response = await fetch('/api/parametres/passage-classe');
+                const data = await response.json();
+                
+                const container = document.getElementById('passage-classe-container');
+                if (container) {
+                    container.style.display = data.actif ? 'flex' : 'none';
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'état du passage:', error);
+                // En cas d'erreur, afficher le bouton par défaut
+            }
+        }
+        
+        // Load content on page load
+        checkPassageClasseStatus();
+        loadContent();
+        updateNotificationCount();
+        
+        // Pré-charger le son et demander la permission
+        preloadNotificationSound();
+        requestNotificationPermission();
+        
+        // Mettre à jour le compteur toutes les 30 secondes (optimisation performance)
+        setInterval(updateNotificationCount, 30000);
+    </script>
+    
+    <!-- Gestion de l'affichage des boutons de téléchargement -->
+    <script>
+        // Charger l'état des téléchargements et afficher/cacher les boutons
+        async function loadDownloadButtonsStatus() {
+            try {
+                const response = await fetch('/api/parametres/telechargements');
+                const data = await response.json();
+                
+                // Récupérer tous les boutons de téléchargement
+                const downloadButtons = document.querySelectorAll('.download-button');
+                
+                if (data.actif) {
+                    // Activer tous les boutons de téléchargement
+                    downloadButtons.forEach(btn => {
+                        btn.style.display = 'inline-flex';
+                    });
+                } else {
+                    // Désactiver tous les boutons de téléchargement
+                    downloadButtons.forEach(btn => {
+                        btn.style.display = 'none';
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'état des téléchargements:', error);
+                // En cas d'erreur, afficher les boutons par défaut
+            }
+        }
+        
+        // Charger l'état au démarrage et à chaque rechargement de contenu
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDownloadButtonsStatus();
+        });
+        
+        // Observer les changements du DOM pour appliquer l'état aux nouveaux boutons
+        const observer = new MutationObserver(function() {
+            loadDownloadButtonsStatus();
+        });
+        
+        // Observer les changements dans le conteneur de contenu
+        const contentContainer = document.querySelector('.main-content');
+        if (contentContainer) {
+            observer.observe(contentContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Force reload du Service Worker avec un paramètre de version
+                navigator.serviceWorker.register('/static/sw.js?v=4')
+                    .then(registration => {
+                        console.log('✅ Service Worker enregistré avec succès:', registration.scope);
+                        // Force la mise à jour immédiate
+                        registration.update();
+                    })
+                    .catch(error => {
+                        console.log('❌ Échec de l\'enregistrement du Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+    
+    <!-- Modal de passage en classe supérieure -->
+    <div id="passage-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto;">
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+            <div style="background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <!-- En-tête -->
+                <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 1.5rem; border-radius: 16px 16px 0 0; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0; font-size: 1.5rem;">🎓 Passage en classe supérieure</h2>
+                    <button onclick="closePassageModal()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; line-height: 1;">✕</button>
+                </div>
+                
+                <!-- Contenu -->
+                <div style="padding: 2rem;">
+                    <div id="passage-loading" style="text-align: center; padding: 2rem;">
+                        <p>⏳ Chargement des options...</p>
+                    </div>
+                    
+                    <div id="passage-content" style="display: none;">
+                        <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                            <p style="margin: 0; color: #1e40af;"><strong>📚 Votre situation actuelle :</strong></p>
+                            <p style="margin: 0.5rem 0 0 0; color: #1e3a8a;" id="current-info">-</p>
+                        </div>
+                        
+                        <h3 style="margin: 1.5rem 0 1rem 0; color: #333;">Choisissez votre orientation :</h3>
+                        <div id="passage-options" style="display: grid; gap: 1rem;">
+                            <!-- Les options seront insérées ici -->
+                        </div>
+                        
+                        <!-- Séparateur -->
+                        <div style="border-top: 2px dashed #e5e7eb; margin: 2rem 0;"></div>
+                        
+                        <!-- Option Redoublant -->
+                        <div onclick="selectPassageOption('redoublant', null, null)" 
+                             style="background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: white; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(220, 38, 38, 0.2);"
+                             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(220, 38, 38, 0.3)';"
+                             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(220, 38, 38, 0.2)';">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-size: 2rem;">⛔</span>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1.1rem;">Redoublant</h4>
+                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.9;">Rester dans le même niveau et filière</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="passage-error" style="display: none; text-align: center; padding: 2rem; color: #dc2626;">
+                        <p>❌ Une erreur s'est produite</p>
+                        <p id="passage-error-message" style="font-size: 0.9rem;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Ouvrir le modal de passage
+        async function openPassageModal() {
+            console.log('🎓 Ouverture du modal de passage...');
+            const modal = document.getElementById('passage-modal');
+            const loading = document.getElementById('passage-loading');
+            const content = document.getElementById('passage-content');
+            const error = document.getElementById('passage-error');
+            
+            modal.style.display = 'block';
+            loading.style.display = 'block';
+            content.style.display = 'none';
+            error.style.display = 'none';
+            
+            try {
+                console.log('📡 Appel de l\'API /api/etudiant/passage/options...');
+                const response = await fetch('/api/etudiant/passage/options');
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📦 Données reçues:', data);
+                
+                loading.style.display = 'none';
+                content.style.display = 'block';
+                
+                // Afficher les infos actuelles
+                document.getElementById('current-info').textContent = `${data.current_filiere} - ${data.current_niveau}`;
+                
+                const optionsContainer = document.getElementById('passage-options');
+                optionsContainer.innerHTML = '';
+                
+                // Afficher le choix actuel si déjà validé
+                if (data.statut_passage === 'validé' || data.statut_passage === 'redoublant') {
+                    console.log('✅ Passage déjà validé avec statut:', data.statut_passage);
+                    
+                    // Afficher un bandeau informatif en haut
+                    const choixActuel = document.createElement('div');
+                    choixActuel.style.cssText = 'background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);';
+                    
+                    let choixText = '';
+                    if (data.statut_passage === 'redoublant') {
+                        choixText = `<strong>🔄 Votre choix actuel : Redoublant</strong><br><small>Vous avez choisi de redoubler votre niveau actuel</small>`;
+                    } else {
+                        // Chercher le choix dans les options
+                        const currentChoice = data.options.find(opt => opt.is_current_choice);
+                        if (currentChoice) {
+                            choixText = `<strong>✅ Votre choix actuel : ${currentChoice.filiere_nom} - ${currentChoice.niveau}</strong><br><small>Vous pouvez modifier votre choix en sélectionnant une autre option ci-dessous</small>`;
+                        } else {
+                            choixText = `<strong>✅ Choix enregistré</strong><br><small>Vous pouvez modifier votre choix en sélectionnant une option ci-dessous</small>`;
+                        }
+                    }
+                    
+                    choixActuel.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">💡</span>
+                            <div>${choixText}</div>
+                        </div>
+                    `;
+                    
+                    optionsContainer.appendChild(choixActuel);
+                }
+                
+                console.log(`📚 Nombre d'options disponibles: ${data.options.length}`);
+                
+                if (data.options.length === 0) {
+                    console.log('⚠️ Aucune option de passage disponible');
+                    optionsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 2rem;">Aucune option de passage disponible pour votre filière actuelle.<br>Contactez l\'administration pour plus d\'informations.</p>';
+                    return;
+                }
+                
+                data.options.forEach((option, index) => {
+                    console.log(`  Option ${index + 1}:`, option);
+                    const optionCard = document.createElement('div');
+                    optionCard.onclick = () => selectPassageOption('passage', option.filiere_id, option.niveau);
+                    optionCard.style.cssText = 'background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 1.5rem; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);';
+                    optionCard.onmouseover = function() {
+                        this.style.transform = 'translateY(-2px)';
+                        this.style.boxShadow = '0 6px 12px rgba(16, 185, 129, 0.3)';
+                    };
+                    optionCard.onmouseout = function() {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.2)';
+                    };
+                    
+                    optionCard.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="font-size: 2rem;">📚</span>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1.1rem;">${option.filiere_nom}</h4>
+                                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; opacity: 0.9;">Niveau: ${option.niveau}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    optionsContainer.appendChild(optionCard);
+                });
+                
+                console.log('✅ Modal affiché avec succès');
+                
+            } catch (err) {
+                console.error('❌ Erreur lors du chargement des options:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                document.getElementById('passage-error-message').textContent = err.message || 'Impossible de charger les options';
+            }
+        }
+        
+        // Fermer le modal
+        function closePassageModal() {
+            document.getElementById('passage-modal').style.display = 'none';
+        }
+        
+        // Sélectionner une option de passage
+        async function selectPassageOption(type, filiereId, niveau) {
+            // Message de confirmation adapté
+            const message = type === 'redoublant' 
+                ? `Confirmez-vous votre choix de redoubler votre niveau actuel ?\n\nℹ️ Vous pourrez modifier ce choix tant que l'administration n'aura pas désactivé le système de passage.`
+                : `Confirmez-vous ce choix de passage ?\n\nℹ️ Vous pourrez modifier ce choix tant que l'administration n'aura pas désactivé le système de passage.`;
+            
+            if (!confirm(message)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/etudiant/passage/valider', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: type,
+                        filiere_id: filiereId,
+                        niveau: niveau
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    closePassageModal();
+                    window.location.reload(); // Recharger la page pour voir le nouveau niveau
+                } else {
+                    alert('❌ Erreur: ' + (data.message || 'Une erreur s\'est produite'));
+                }
+            } catch (err) {
+                console.error('Erreur:', err);
+                alert('❌ Erreur de communication avec le serveur');
+            }
+        }
+        
+        // Fermer le modal en cliquant à l'extérieur
+        document.getElementById('passage-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePassageModal();
+            }
+        });
+        
+        // Fonction pour ouvrir automatiquement la matière et scroller vers le chapitre
+        function scrollToChapterFromHash() {
+            // Vérifier si l'URL contient un hash pointant vers un chapitre
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#chapitre-')) {
+                const chapitreElement = document.querySelector(hash);
+                
+                if (chapitreElement) {
+                    // Trouver la matière parente
+                    const matiereContent = chapitreElement.closest('.matiere-content');
+                    
+                    if (matiereContent) {
+                        // Ouvrir la matière (ajouter la classe 'show')
+                        matiereContent.classList.add('show');
+                        
+                        // Trouver et ouvrir la flèche
+                        const matiereHeader = matiereContent.previousElementSibling;
+                        if (matiereHeader) {
+                            const arrow = matiereHeader.querySelector('.toggle-arrow');
+                            if (arrow) {
+                                arrow.classList.add('open');
+                            }
+                        }
+                        
+                        // Attendre que l'ouverture soit terminée, puis scroller
+                        setTimeout(function() {
+                            chapitreElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            
+                            // Ajouter un effet de surbrillance temporaire
+                            chapitreElement.style.transition = 'background-color 0.5s';
+                            chapitreElement.style.backgroundColor = '#fff9c4';
+                            
+                            setTimeout(function() {
+                                chapitreElement.style.backgroundColor = '';
+                            }, 2000);
+                            
+                            // Supprimer le hash de l'URL pour éviter que la matière reste ouverte au prochain chargement
+                            history.replaceState(null, '', window.location.pathname);
+                        }, 300);
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Gestion du badge de messages non lus -->
+    <script>
+        async function updateMessagesBadge() {
+            try {
+                const response = await fetch('/api/etudiant/messages');
+                const data = await response.json();
+                const messages = data.messages || [];
+                const unreadCount = messages.filter(m => !m.lu).length;
+                const badge = document.getElementById('messages-badge');
+                
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erreur chargement badge messages:', error);
+            }
+        }
+        
+        // Charger le badge au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMessagesBadge();
+        });
+    </script>
+    <script>
+        // Heartbeat : signale que l'étudiant est en ligne toutes les 60 secondes
+        async function sendHeartbeat() {
+            try {
+                await fetch('/etudiant/heartbeat', { method: 'POST' });
+            } catch (e) {}
+        }
+        sendHeartbeat(); // immédiatement au chargement
+        setInterval(sendHeartbeat, 60000); // puis toutes les 60 secondes
+    </script>
+
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT ÉTAGÈRE DE DOCUMENTS                               -->
+    <!-- ============================================================ -->
+    <script>
+    // ── State ──────────────────────────────────────────────────────
+    let allDocs = [];
+    let currentFilter = 'all';
+    let currentSearch = '';
+    let documentsLoaded = false;
+
+    // ── Toggle section ─────────────────────────────────────────────
+    function toggleDocumentsSection() {
+        const section = document.getElementById('documents-section');
+        const isHidden = section.style.display === 'none' || section.style.display === '';
+        section.style.display = isHidden ? 'block' : 'none';
+        if (isHidden && !documentsLoaded) {
+            loadDocuments();
+        }
+    }
+
+    // ── Chargement des documents ───────────────────────────────────
+    async function loadDocuments() {
+        document.getElementById('docs-loading').style.display = 'block';
+        document.getElementById('docs-empty').style.display = 'none';
+        document.getElementById('docs-grid').style.display = 'none';
+        try {
+            const res = await fetch('/api/etudiant/documents');
+            const data = await res.json();
+            allDocs = data.documents || [];
+            documentsLoaded = true;
+            renderDocs();
+        } catch(e) {
+            document.getElementById('docs-loading').innerHTML = '❌ Erreur de chargement.';
+        }
+    }
+
+    // ── Rendu de la grille ─────────────────────────────────────────
+    function renderDocs() {
+        document.getElementById('docs-loading').style.display = 'none';
+        let filtered = allDocs.filter(doc => {
+            const matchFilter = matchesFilter(doc, currentFilter);
+            const matchSearch = !currentSearch || doc.nom_affichage.toLowerCase().includes(currentSearch) || (doc.matiere_nom||'').toLowerCase().includes(currentSearch) || (doc.type_document||'').toLowerCase().includes(currentSearch);
+            return matchFilter && matchSearch;
+        });
+
+        const grid = document.getElementById('docs-grid');
+        const empty = document.getElementById('docs-empty');
+
+        if (filtered.length === 0) {
+            grid.style.display = 'none';
+            empty.style.display = 'block';
+        } else {
+            empty.style.display = 'none';
+            grid.style.display = 'grid';
+            grid.innerHTML = filtered.map(doc => renderDocCard(doc)).join('');
+        }
+    }
+
+    function matchesFilter(doc, filter) {
+        const ext = (doc.extension || '').toLowerCase();
+        if (filter === 'all') return true;
+        if (filter === 'pdf') return ext === '.pdf';
+        if (filter === 'image') return ['.png','.jpg','.jpeg','.gif','.webp'].includes(ext);
+        if (filter === 'doc') return ['.doc','.docx','.ppt','.pptx','.xls','.xlsx'].includes(ext);
+        if (filter === 'autre') return !['.pdf','.png','.jpg','.jpeg','.gif','.webp','.doc','.docx','.ppt','.pptx','.xls','.xlsx'].includes(ext);
+        return true;
+    }
+
+    function getFileIcon(ext) {
+        const icons = { '.pdf': '📄', '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️', '.gif': '🖼️', '.webp': '🖼️', '.doc': '📝', '.docx': '📝', '.ppt': '📊', '.pptx': '📊', '.xls': '📈', '.xlsx': '📈', '.txt': '📃', '.mp4': '🎬', '.mp3': '🎵' };
+        return icons[ext] || '📦';
+    }
+
+    function getTypeColor(type) {
+        const colors = { 'Devoir': '#8b5cf6', 'Rapport': '#3b82f6', 'Carte étudiant': '#10b981', 'Attestation': '#f59e0b', 'Résumé': '#6366f1', 'Exercice': '#ec4899', 'Autre': '#64748b' };
+        return colors[type] || '#64748b';
+    }
+
+    function formatSize(bytes) {
+        if (!bytes) return '';
+        if (bytes < 1024) return bytes + ' o';
+        if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' Ko';
+        return (bytes/(1024*1024)).toFixed(1) + ' Mo';
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+    }
+
+    function renderDocCard(doc) {
+        const icon = getFileIcon(doc.extension);
+        const typeColor = getTypeColor(doc.type_document);
+        const canPreview = ['.pdf','.png','.jpg','.jpeg','.gif','.webp','.mp4','.mp3','.txt'].includes(doc.extension);
+        return `
+        <div class="doc-card" data-id="${doc.id}" style="background:white; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; transition:all 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.04);" onmouseover="this.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)'; this.style.transform='translateY(0)'">
+            <!-- Icône + couleur de type -->
+            <div style="background:linear-gradient(135deg,${typeColor}20,${typeColor}10); padding:1.5rem; text-align:center; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="openViewer(${doc.id},'${escapeJs(doc.nom_affichage)}','${escapeJs(doc.extension)}','${escapeJs(doc.type_document||'')}')">
+                <div style="font-size:2.5rem;">${icon}</div>
+                ${canPreview ? '<div style="margin-top:0.5rem; font-size:0.7rem; color:'+typeColor+'; font-weight:600;">👁️ Cliquer pour ouvrir</div>' : '<div style="margin-top:0.5rem; font-size:0.7rem; color:#94a3b8;">⬇️ Téléchargeable</div>'}
+            </div>
+            <!-- Infos -->
+            <div style="padding:0.9rem;">
+                <div style="font-weight:600; color:#1e293b; font-size:0.9rem; margin-bottom:0.3rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeAttr(doc.nom_affichage)}">${escapeHtml(doc.nom_affichage)}</div>
+                ${doc.type_document ? `<span style="background:${typeColor}20; color:${typeColor}; font-size:0.7rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:20px;">${escapeHtml(doc.type_document)}</span>` : ''}
+                ${doc.matiere_nom ? `<div style="color:#64748b; font-size:0.75rem; margin-top:0.4rem;">📖 ${escapeHtml(doc.matiere_nom)}</div>` : ''}
+                <div style="color:#94a3b8; font-size:0.72rem; margin-top:0.3rem;">${formatDate(doc.created_at)}${doc.taille ? ' · '+formatSize(doc.taille) : ''}</div>
+            </div>
+            <!-- Actions -->
+            <div style="padding:0.5rem 0.9rem 0.9rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
+                ${canPreview ? `<button onclick="openViewer(${doc.id},'${escapeJs(doc.nom_affichage)}','${escapeJs(doc.extension)}','${escapeJs(doc.type_document||'')}'); event.stopPropagation();" title="Ouvrir" style="flex:1; background:#6366f1; color:white; border:none; padding:0.4rem; border-radius:6px; font-size:0.75rem; cursor:pointer; font-weight:600;">👁️</button>` : ''}
+                <button onclick="downloadDoc(${doc.id}); event.stopPropagation();" title="Télécharger" style="flex:1; background:#10b981; color:white; border:none; padding:0.4rem; border-radius:6px; font-size:0.75rem; cursor:pointer; font-weight:600;">⬇️</button>
+                <button onclick="openEditModal(${doc.id},'${escapeJs(doc.nom_affichage)}','${escapeJs(doc.type_document||'')}','${escapeJs(doc.description||'')}','${escapeJs(doc.matiere_id||'')}'); event.stopPropagation();" title="Modifier" style="flex:1; background:#0ea5e9; color:white; border:none; padding:0.4rem; border-radius:6px; font-size:0.75rem; cursor:pointer; font-weight:600;">✏️</button>
+                <button onclick="deleteDoc(${doc.id},'${escapeJs(doc.nom_affichage)}'); event.stopPropagation();" title="Supprimer" style="flex:1; background:#ef4444; color:white; border:none; padding:0.4rem; border-radius:6px; font-size:0.75rem; cursor:pointer; font-weight:600;">🗑️</button>
+            </div>
+        </div>`;
+    }
+
+    // ── Filtres et recherche ───────────────────────────────────────
+    function filterDocs(type) {
+        currentFilter = type;
+        document.querySelectorAll('.doc-filter-btn').forEach(b => {
+            b.style.background = 'white'; b.style.color = '#64748b'; b.style.borderColor = '#e2e8f0';
+        });
+        const active = document.getElementById('filter-' + type);
+        if (active) { active.style.background='#6366f1'; active.style.color='white'; active.style.borderColor='#6366f1'; }
+        renderDocs();
+    }
+
+    function searchDocs(val) {
+        currentSearch = val.toLowerCase().trim();
+        renderDocs();
+    }
+
+    // ── Upload ─────────────────────────────────────────────────────
+    function openUploadModal() {
+        document.getElementById('upload-modal').style.display = 'flex';
+        document.getElementById('upload-form').reset();
+        document.getElementById('drop-label').style.display = 'block';
+        document.getElementById('drop-selected').style.display = 'none';
+        document.getElementById('upload-progress').style.display = 'none';
+    }
+
+    function closeUploadModal() {
+        document.getElementById('upload-modal').style.display = 'none';
+    }
+
+    function handleFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            document.getElementById('drop-label').style.display = 'none';
+            document.getElementById('drop-selected').style.display = 'block';
+            document.getElementById('drop-selected').innerHTML = `📎 <strong>${escapeHtml(file.name)}</strong> (${formatSize(file.size)})`;
+        }
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        document.getElementById('drop-zone').style.borderColor = '#cbd5e1';
+        document.getElementById('drop-zone').style.background = '#f8fafc';
+        const files = event.dataTransfer.files;
+        if (files && files.length > 0) {
+            document.getElementById('upload-fichier').files = files;
+            handleFileSelect(document.getElementById('upload-fichier'));
+        }
+    }
+
+    async function submitUpload(event) {
+        event.preventDefault();
+        const nom = document.getElementById('upload-nom').value.trim();
+        const fichier = document.getElementById('upload-fichier').files[0];
+
+        if (!nom) { alert('Veuillez entrer un nom pour le document.'); return; }
+        if (!fichier) { alert('Veuillez sélectionner un fichier.'); return; }
+
+        const btn = document.getElementById('upload-submit-btn');
+        btn.disabled = true; btn.textContent = '⏳ Upload en cours...';
+        document.getElementById('upload-progress').style.display = 'block';
+        document.getElementById('upload-progress-bar').style.width = '30%';
+        document.getElementById('upload-status').textContent = 'Envoi du fichier...';
+
+        const formData = new FormData();
+        formData.append('nom_affichage', nom);
+        formData.append('type_document', document.getElementById('upload-type').value);
+        formData.append('description', document.getElementById('upload-description').value);
+        formData.append('matiere_id', document.getElementById('upload-matiere').value);
+        formData.append('fichier', fichier);
+
+        try {
+            document.getElementById('upload-progress-bar').style.width = '60%';
+            const res = await fetch('/api/etudiant/upload-document', { method: 'POST', body: formData });
+            const data = await res.json();
+            document.getElementById('upload-progress-bar').style.width = '100%';
+
+            if (data.success) {
+                document.getElementById('upload-status').textContent = '✅ Document uploadé !';
+                setTimeout(() => {
+                    closeUploadModal();
+                    documentsLoaded = false;
+                    loadDocuments();
+                }, 800);
+            } else {
+                document.getElementById('upload-status').textContent = '❌ ' + (data.error || 'Erreur');
+                btn.disabled = false; btn.textContent = '⬆️ Uploader';
+            }
+        } catch(e) {
+            document.getElementById('upload-status').textContent = '❌ Erreur réseau';
+            btn.disabled = false; btn.textContent = '⬆️ Uploader';
+        }
+    }
+
+    // ── Visionneuse intégrée ───────────────────────────────────────
+    function openViewer(docId, nom, ext, type) {
+        const modal = document.getElementById('viewer-modal');
+        const content = document.getElementById('viewer-content');
+        document.getElementById('viewer-title').textContent = nom;
+        document.getElementById('viewer-type').textContent = type ? `[${type}]` : '';
+        document.getElementById('viewer-download-btn').onclick = () => downloadDoc(docId);
+        modal.style.display = 'flex';
+        content.innerHTML = '<div style="color:#94a3b8;">⏳ Chargement...</div>';
+
+        const url = `/etudiant/document/${docId}/view`;
+        const imgExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+
+        if (ext === '.pdf') {
+            content.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; min-height:80vh; border:none; border-radius:8px;" allowfullscreen></iframe>`;
+        } else if (imgExts.includes(ext)) {
+            content.innerHTML = `<img src="${url}" style="max-width:100%; max-height:85vh; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.4);" alt="${escapeAttr(nom)}">`;
+        } else if (ext === '.mp4') {
+            content.innerHTML = `<video controls autoplay style="max-width:100%; max-height:80vh; border-radius:10px;"><source src="${url}"></video>`;
+        } else if (ext === '.mp3') {
+            content.innerHTML = `<div style="text-align:center; padding:2rem;"><div style="font-size:4rem; margin-bottom:1rem;">🎵</div><p style="color:white; margin-bottom:1rem; font-size:1.1rem;">${escapeHtml(nom)}</p><audio controls autoplay style="width:100%; max-width:500px;"><source src="${url}"></audio></div>`;
+        } else if (ext === '.txt') {
+            fetch(url).then(r => r.text()).then(txt => {
+                content.innerHTML = `<div style="background:white; border-radius:10px; padding:2rem; max-width:800px; width:100%; max-height:80vh; overflow:auto; white-space:pre-wrap; font-family:monospace; font-size:0.9rem; color:#1e293b;">${escapeHtml(txt)}</div>`;
+            }).catch(() => { content.innerHTML = '<p style="color:white;">❌ Impossible d\'afficher ce fichier.</p>'; });
+        } else {
+            content.innerHTML = `<div style="text-align:center; padding:2rem;"><div style="font-size:4rem; margin-bottom:1rem;">📦</div><p style="color:white; margin-bottom:1.5rem;">Ce type de fichier ne peut pas être prévisualisé directement.</p><button onclick="downloadDoc(${docId})" style="background:#6366f1; color:white; border:none; padding:0.8rem 2rem; border-radius:10px; font-size:1rem; cursor:pointer; font-weight:600;">⬇️ Télécharger le fichier</button></div>`;
+        }
+    }
+
+    function closeViewer() {
+        const modal = document.getElementById('viewer-modal');
+        modal.style.display = 'none';
+        document.getElementById('viewer-content').innerHTML = '';
+    }
+
+    // Fermer la visionneuse avec Échap
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeViewer(); closeUploadModal(); closeEditModal(); } });
+
+    // ── Téléchargement ─────────────────────────────────────────────
+    function downloadDoc(docId) {
+        window.location.href = `/etudiant/document/${docId}/download`;
+    }
+
+    // ── Suppression ────────────────────────────────────────────────
+    async function deleteDoc(docId, nom) {
+        if (!confirm(`Supprimer "${nom}" ? Cette action est irréversible.`)) return;
+        try {
+            const res = await fetch(`/api/etudiant/document/${docId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                allDocs = allDocs.filter(d => d.id !== docId);
+                renderDocs();
+            } else {
+                alert('Erreur : ' + (data.error || 'Suppression impossible'));
+            }
+        } catch(e) {
+            alert('Erreur réseau');
+        }
+    }
+
+    // ── Modification ───────────────────────────────────────────────
+    function openEditModal(docId, nom, type, description, matiereId) {
+        document.getElementById('edit-doc-id').value = docId;
+        document.getElementById('edit-nom').value = nom;
+        document.getElementById('edit-type').value = type || '';
+        document.getElementById('edit-description').value = description || '';
+        document.getElementById('edit-matiere').value = matiereId || '';
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    async function submitEdit() {
+        const docId = document.getElementById('edit-doc-id').value;
+        const nom = document.getElementById('edit-nom').value.trim();
+        if (!nom) { alert('Le nom est obligatoire.'); return; }
+
+        try {
+            const res = await fetch(`/api/etudiant/document/${docId}/rename`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    nom_affichage: nom,
+                    type_document: document.getElementById('edit-type').value || null,
+                    description: document.getElementById('edit-description').value || null,
+                    matiere_id: document.getElementById('edit-matiere').value || null,
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeEditModal();
+                documentsLoaded = false;
+                loadDocuments();
+            } else {
+                alert('Erreur : ' + (data.error || 'Modification impossible'));
+            }
+        } catch(e) {
+            alert('Erreur réseau');
+        }
+    }
+
+    // ── Utilitaires d'échappement ──────────────────────────────────
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function escapeAttr(str) { return escapeHtml(str); }
+    function escapeJs(str) {
+        if (!str) return '';
+        return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
+    }
+    </script>
+
+    {% if not subscription_active %}
+    <!-- Modal Paiement Dashboard -->
+    <div id="modal-payment-dashboard" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:flex-end; justify-content:center;">
+        <div style="background:white; border-radius:16px 16px 0 0; max-width:460px; width:100%; position:relative; box-shadow:0 -8px 30px rgba(0,0,0,0.2); max-height:92vh; display:flex; flex-direction:column;">
+
+            <!-- En-tête fixe -->
+            <div style="padding:1.25rem 1.5rem 0.75rem; flex-shrink:0; border-bottom:1px solid #f3f4f6; position:relative;">
+                <button onclick="document.getElementById('modal-payment-dashboard').style.display='none'"
+                        style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#666;">✕</button>
+                <h3 style="color:#7C3AED; margin:0 0 0.25rem; text-align:center;">🎓 Abonnement Étude LINE</h3>
+                <p style="text-align:center; color:#6b7280; margin:0; font-size:0.85rem;">Accédez aux exercices et solutions de votre filière</p>
+            </div>
+
+            <!-- Corps scrollable -->
+            <div style="overflow-y:auto; flex:1; padding:1.25rem 1.5rem; -webkit-overflow-scrolling:touch;">
+                <div style="background:linear-gradient(135deg,#7C3AED,#6366f1); border-radius:12px; padding:0.85rem; text-align:center; margin-bottom:1rem; color:white;">
+                    <div style="font-size:1.8rem; font-weight:800;">490 FCFA</div>
+                    <div style="font-size:0.85rem; opacity:0.9;">pendant 2 mois (60 jours)</div>
+                </div>
+
+                {% if has_pending_payment %}
+                    <div style="background:#fefce8; border:1px solid #fbbf24; border-radius:10px; padding:0.85rem 1.25rem; text-align:center; margin-bottom:1rem;">
+                        🟡 <strong>Demande en attente de validation</strong><br>
+                        <small style="color:#92400e;">L'administrateur va vérifier votre paiement sous peu.</small>
+                    </div>
+                {% elif last_payment_status == "rejected" %}
+                    <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:0.85rem 1.25rem; text-align:center; margin-bottom:1rem;">
+                        🔴 <strong>Demande refusée</strong><br>
+                        <small style="color:#991b1b;">Vous pouvez soumettre une nouvelle demande ci-dessous.</small>
+                    </div>
+                {% endif %}
+
+                {% if not has_pending_payment %}
+                <form action="/payments/request" method="post" enctype="multipart/form-data" id="payment-form-dash">
+                    <p style="font-weight:600; color:#374151; margin-bottom:0.5rem;">Méthode de paiement :</p>
+                    <div style="display:flex; gap:1rem; margin-bottom:1rem;">
+                        <label style="flex:1; cursor:pointer;">
+                            <input type="radio" name="payment_method" value="orange" required style="display:none;" onchange="selectMethodDash('orange')">
+                            <div id="dash-btn-orange" style="border:2px solid #e5e7eb; border-radius:10px; padding:0.75rem; text-align:center; transition:all 0.2s;">
+                                🟠<br><strong>Orange Money</strong>
+                            </div>
+                        </label>
+                        <label style="flex:1; cursor:pointer;">
+                            <input type="radio" name="payment_method" value="wave" required style="display:none;" onchange="selectMethodDash('wave')">
+                            <div id="dash-btn-wave" style="border:2px solid #e5e7eb; border-radius:10px; padding:0.75rem; text-align:center; transition:all 0.2s;">
+                                🔵<br><strong>Wave</strong>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div style="background:#f3f4f6; border-radius:10px; padding:0.85rem; margin-bottom:1rem; text-align:center;">
+                        <p style="margin:0 0 0.25rem; color:#374151; font-size:0.9rem;">Envoyez <strong>490 FCFA</strong> au :</p>
+                        <p style="margin:0 0 0.25rem; font-size:1.3rem; font-weight:700; color:#111;">775 77 14 43</p>
+                        <p style="margin:0; color:#6b7280; font-size:0.85rem;">Nom : <strong>ELN Technologies</strong></p>
+                    </div>
+
+                    <p style="font-weight:600; color:#374151; margin-bottom:0.5rem;">Capture d'écran de la confirmation :</p>
+                    <input type="file" name="proof_image" accept="image/*" required
+                           style="width:100%; border:2px dashed #c084fc; border-radius:8px; padding:0.5rem; font-size:0.9rem; cursor:pointer; box-sizing:border-box;"
+                           onchange="previewProofDash(this)">
+                    <div id="proof-preview-dash" style="margin-top:0.5rem; display:none;">
+                        <img id="proof-img-dash" style="max-width:100%; border-radius:8px; max-height:100px; object-fit:contain;">
+                    </div>
+                    <p style="color:#9ca3af; font-size:0.75rem; margin:0.4rem 0 0;">Formats acceptés : JPG, PNG, WEBP — Max 5 Mo</p>
+                </form>
+                {% endif %}
+            </div>
+
+            <!-- Bouton fixe en bas -->
+            {% if not has_pending_payment %}
+            <div style="padding:1rem 1.5rem; flex-shrink:0; border-top:1px solid #f3f4f6; background:white; border-radius:0 0 0 0;">
+                <button type="submit" form="payment-form-dash" id="submit-payment-dash"
+                        style="width:100%; background:linear-gradient(135deg,#7C3AED,#6366f1); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;">
+                    📤 Envoyer ma demande
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        function selectMethodDash(method) {
+            ['orange','wave'].forEach(m => {
+                document.getElementById('dash-btn-'+m).style.border = '2px solid #e5e7eb';
+                document.getElementById('dash-btn-'+m).style.background = 'white';
+            });
+            document.getElementById('dash-btn-'+method).style.border = '2px solid #7C3AED';
+            document.getElementById('dash-btn-'+method).style.background = '#f5f3ff';
+        }
+        function previewProofDash(input) {
+            const preview = document.getElementById('proof-preview-dash');
+            const img = document.getElementById('proof-img-dash');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { img.src = e.target.result; preview.style.display = 'block'; };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        const formDash = document.getElementById('payment-form-dash');
+        if (formDash) {
+            formDash.addEventListener('submit', function() {
+                document.getElementById('submit-payment-dash').disabled = true;
+                document.getElementById('submit-payment-dash').textContent = 'Envoi en cours...';
+            });
+        }
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Étude LINE</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Étude LINE">
+    <link rel="manifest" href="/static/manifest.json">
+    <!-- Apple Touch Icon for iOS (180x180 is the standard for modern iPhones) -->
+    <link rel="apple-touch-icon" href="/static/icons/icon-180.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #f8fafc;
+            --accent: #6366f1;
+            --success: #10b981;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+        }
+        
+        /* Désactiver sélection accidentelle sur l'interface */
+        button, .login-header, h1, h2, h3,
+        .role-selector, .role-option, label,
+        .subtitle, .footer-text {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Garder la sélection pour les champs de formulaire */
+        input[type="text"], input[type="password"],
+        input[type="email"], .form-control {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-weight: 400;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            max-width: 500px;
+            width: 100%;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Mobile Responsive - Version optimisée */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 15px !important;
+                min-height: 100vh;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .login-container {
+                padding: 2rem !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem !important;
+                line-height: 1.2 !important;
+            }
+            
+            .header p {
+                font-size: 0.9rem !important;
+            }
+            
+            .form-group {
+                margin-bottom: 1rem !important;
+            }
+            
+            .form-group label {
+                font-size: 0.9rem !important;
+                margin-bottom: 5px !important;
+            }
+            
+            .form-group input, .form-group select {
+                padding: 12px !important;
+                font-size: 16px !important; /* Évite le zoom sur iOS */
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .btn {
+                padding: 12px 20px !important;
+                font-size: 1rem !important;
+                width: 100% !important;
+                margin-top: 10px !important;
+            }
+            
+            .toggle-link {
+                font-size: 0.85rem !important;
+                display: block !important;
+                text-align: center !important;
+                margin-top: 15px !important;
+            }
+            
+            .password-field {
+                position: relative !important;
+            }
+            
+            .toggle-password {
+                right: 10px !important;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 10px !important;
+            }
+            
+            .login-container {
+                padding: 1.5rem !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .header h1 {
+                font-size: 1.4rem !important;
+                line-height: 1.1 !important;
+            }
+            
+            .header p {
+                font-size: 0.8rem !important;
+            }
+            
+            .form-group input, .form-group select {
+                padding: 10px !important;
+                font-size: 16px !important;
+            }
+            
+            .btn {
+                padding: 10px 15px !important;
+                font-size: 0.9rem !important;
+            }
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), #8b5cf6, var(--accent));
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .header h1 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            letter-spacing: 0.01em;
+        }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        
+        .password-field input {
+            padding-right: 3rem;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            padding: 0.25rem;
+            border-radius: 4px;
+        }
+        
+        .toggle-password:hover {
+            color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.01em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .register-link p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .register-link a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: 1.5px solid var(--accent);
+            border-radius: var(--radius);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .register-link a:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+        
+        .error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #16a34a;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 2rem;
+                margin: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+    <script>
+        // Gestion du changement d'arrière-plan en fonction de l'université sélectionnée
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fonction pour changer l'arrière-plan avec l'image de l'université
+            function updateBackgroundImage(logoPath) {
+                if (logoPath && logoPath !== '') {
+                    document.body.style.backgroundImage = `linear-gradient(rgba(248, 250, 252, 0.9), rgba(226, 232, 240, 0.9)), url('/static/${logoPath}')`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.style.backgroundAttachment = 'fixed';
+                } else {
+                    document.body.style.backgroundImage = 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)';
+                }
+            }
+            
+            // Page de connexion avec fond par défaut uniquement
+        });
+        
+        // Fonction pour basculer l'affichage du mot de passe
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.textContent = '🙈';
+                button.title = 'Masquer le mot de passe';
+            } else {
+                field.type = 'password';
+                button.textContent = '👁️';
+                button.title = 'Afficher le mot de passe';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header">
+            <h1>✨ Connexion</h1>
+            <p>Accédez à votre espace Étude LINE</p>
+        </div>
+        
+        {% if error %}
+        <div class="error">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="success">
+            ✅ {{ success }}
+        </div>
+        {% endif %}
+        
+        <form action="/login" method="post">
+            <div class="form-group">
+                <label for="user_type">Type d'utilisateur</label>
+                <select id="user_type" name="user_type" required style="width: 100%; padding: 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 1rem; font-family: 'Inter', sans-serif; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);">
+                    <option value="">Sélectionner votre rôle</option>
+                    <option value="etudiant">👨‍🎓 Étudiant</option>
+                    <option value="prof">👨‍🏫 Professeur</option>
+                    <option value="admin">👑 Administrateur</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <div class="password-field">
+                    <input type="password" id="password" name="password" autocomplete="current-password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                        👁️
+                    </button>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Se connecter</button>
+        </form>
+        
+        <div class="register-link">
+            <p>Pas encore de compte ?</p>
+            <a href="/">Créer un compte</a>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">
+                © 2024 Étude LINE - Maodo Ka
+            </p>
+        </div>
+    </div>
+    
+    <!-- Bannière d'installation PWA -->
+    <div id="pwa-install-banner" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 10000; max-width: 500px; width: 90%; animation: slideUp 0.5s ease;">
+        <button onclick="closePWABanner()" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 1.3rem; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">✕</button>
+        <div style="text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">📲</div>
+            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem; font-weight: 600;">Installer Étude LINE</h3>
+            <p style="margin: 0 0 15px 0; font-size: 0.95rem; opacity: 0.95;">Ajoutez l'application à votre écran d'accueil pour un accès rapide !</p>
+            <button onclick="installPWA()" style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                🚀 Installer maintenant
+            </button>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        #pwa-install-banner button:hover {
+            transform: scale(1.05);
+        }
+        
+        @media screen and (max-width: 600px) {
+            #pwa-install-banner {
+                bottom: 10px !important;
+                padding: 15px 20px !important;
+                width: 95% !important;
+            }
+            
+            #pwa-install-banner h3 {
+                font-size: 1.1rem !important;
+            }
+            
+            #pwa-install-banner p {
+                font-size: 0.85rem !important;
+            }
+            
+            #pwa-install-banner button {
+                padding: 10px 20px !important;
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
+
+    <!-- Service Worker Registration -->
+    <script>
+        let deferredPrompt;
+        
+        // Intercepter l'événement beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Empêcher le navigateur d'afficher son propre prompt
+            e.preventDefault();
+            
+            // Stocker l'événement pour l'utiliser plus tard
+            deferredPrompt = e;
+            
+            // Vérifier si l'utilisateur a déjà fermé la bannière
+            const bannerClosed = sessionStorage.getItem('pwa-banner-closed');
+            if (!bannerClosed) {
+                // Afficher notre bannière personnalisée
+                document.getElementById('pwa-install-banner').style.display = 'block';
+            }
+            
+            console.log('✅ Prompt d\'installation PWA prêt');
+        });
+        
+        // Fonction pour installer la PWA
+        async function installPWA() {
+            if (!deferredPrompt) {
+                alert('L\'installation n\'est pas disponible pour le moment.');
+                return;
+            }
+            
+            // Afficher le prompt d'installation natif
+            deferredPrompt.prompt();
+            
+            // Attendre le choix de l'utilisateur
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('✅ PWA installée avec succès');
+            } else {
+                console.log('❌ Installation refusée');
+            }
+            
+            // Masquer la bannière
+            document.getElementById('pwa-install-banner').style.display = 'none';
+            
+            // Réinitialiser le prompt
+            deferredPrompt = null;
+        }
+        
+        // Fonction pour fermer la bannière
+        function closePWABanner() {
+            document.getElementById('pwa-install-banner').style.display = 'none';
+            // Sauvegarder dans sessionStorage pour cette session seulement
+            sessionStorage.setItem('pwa-banner-closed', 'true');
+        }
+        
+        // Enregistrer le Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker enregistré avec succès:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('❌ Échec de l\'enregistrement du Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
