@@ -3058,8 +3058,8 @@
 
     {% if not subscription_active %}
     <!-- Modal Paiement Dashboard -->
-    <div id="modal-payment-dashboard" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:flex-end; justify-content:center;">
-        <div style="background:white; border-radius:16px 16px 0 0; max-width:460px; width:100%; position:relative; box-shadow:0 -8px 30px rgba(0,0,0,0.2); max-height:92vh; display:flex; flex-direction:column;">
+    <div id="modal-payment-dashboard" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:flex-end; justify-content:center; overflow:hidden;">
+        <div style="background:white; border-radius:16px 16px 0 0; max-width:460px; width:100%; position:relative; box-shadow:0 -8px 30px rgba(0,0,0,0.2); max-height:92vh; height:auto; display:flex; flex-direction:column; overflow:hidden;">
 
             <!-- En-tête fixe -->
             <div style="padding:1.25rem 1.5rem 0.75rem; flex-shrink:0; border-bottom:1px solid #f3f4f6; position:relative;">
@@ -3070,7 +3070,7 @@
             </div>
 
             <!-- Corps scrollable -->
-            <div style="overflow-y:auto; flex:1; padding:1.25rem 1.5rem; -webkit-overflow-scrolling:touch;">
+            <div style="overflow-y:auto; flex:1; min-height:0; padding:1.25rem 1.5rem; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
                 <div style="background:linear-gradient(135deg,#7C3AED,#6366f1); border-radius:12px; padding:0.85rem; text-align:center; margin-bottom:1rem; color:white;">
                     <div style="font-size:1.8rem; font-weight:800;">490 FCFA</div>
                     <div style="font-size:0.85rem; opacity:0.9;">pendant 2 mois (60 jours)</div>
@@ -3117,7 +3117,7 @@
                            style="width:100%; border:2px dashed #c084fc; border-radius:8px; padding:0.5rem; font-size:0.9rem; cursor:pointer; box-sizing:border-box;"
                            onchange="previewProofDash(this)">
                     <div id="proof-preview-dash" style="margin-top:0.5rem; display:none;">
-                        <img id="proof-img-dash" style="max-width:100%; border-radius:8px; max-height:100px; object-fit:contain;">
+                        <img id="proof-img-dash" style="max-width:100%; border-radius:8px; max-height:160px; object-fit:contain; display:block; margin:0 auto;">
                     </div>
                     <p style="color:#9ca3af; font-size:0.75rem; margin:0.4rem 0 0;">Formats acceptés : JPG, PNG, WEBP — Max 5 Mo</p>
                 </form>
