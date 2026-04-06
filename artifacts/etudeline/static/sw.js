@@ -1,10 +1,8 @@
-const CACHE_VERSION = 'etude-line-v17';
-const STATIC_CACHE = 'etude-line-static-v17';
-const DYNAMIC_CACHE = 'etude-line-dynamic-v17';
+const CACHE_VERSION = 'etude-line-v18';
+const STATIC_CACHE = 'etude-line-static-v18';
+const DYNAMIC_CACHE = 'etude-line-dynamic-v18';
 
 const STATIC_ASSETS = [
-  '/',
-  '/login',
   '/static/offline.html',
   '/static/manifest.json',
   '/static/icons/icon-192.png',
@@ -24,6 +22,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(names =>
       Promise.all(names.map(n => {
+        // Supprimer TOUTES les anciennes versions de cache
         if (n !== STATIC_CACHE && n !== DYNAMIC_CACHE) return caches.delete(n);
       }))
     ).then(() => self.clients.claim())
@@ -39,13 +38,15 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   if (url.pathname.startsWith('/static/')) {
+    // Fichiers statiques : cache-first (CSS, JS, images)
     event.respondWith(cacheFirst(request));
   } else if (url.pathname.startsWith('/api/')) {
+    // API : réseau uniquement, jamais de cache
     event.respondWith(networkOnly(request));
-  } else if (url.pathname.startsWith('/dashboard/')) {
-    event.respondWith(networkOnlyOfflineFallback(request));
   } else {
-    event.respondWith(networkFirst(request));
+    // Pages HTML (dashboard, login, etc.) : réseau uniquement, jamais mis en cache
+    // Les pages changent fréquemment et contiennent des données utilisateur
+    event.respondWith(networkOnlyOfflineFallback(request));
   }
 });
 
@@ -59,18 +60,6 @@ async function cacheFirst(request) {
   } catch { return new Response('Offline', { status: 503 }); }
 }
 
-async function networkFirst(request) {
-  try {
-    const resp = await fetch(request);
-    if (resp.ok) (await caches.open(DYNAMIC_CACHE)).put(request, resp.clone());
-    return resp;
-  } catch {
-    const cached = await caches.match(request);
-    return cached || await caches.match('/static/offline.html') ||
-      new Response('Offline', { status: 503 });
-  }
-}
-
 async function networkOnly(request) {
   try { return await fetch(request); }
   catch {
@@ -81,8 +70,10 @@ async function networkOnly(request) {
 }
 
 async function networkOnlyOfflineFallback(request) {
-  try { return await fetch(request); }
-  catch {
+  try {
+    // Toujours aller sur le réseau — ne jamais mettre les pages HTML en cache
+    return await fetch(request);
+  } catch {
     return await caches.match('/static/offline.html') ||
       new Response('Offline', { status: 503 });
   }
@@ -103,11 +94,8 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/static/icons/icon-192.png',
     badge: '/static/icons/icon-192.png',
     vibrate: [200, 100, 200],
-    // Tag unique par notification → toutes s'empilent dans la barre Android
     tag: 'etudeline-' + ts,
     renotify: false,
-    // requireInteraction: false = compatible tous navigateurs Android/iOS
-    // La notification reste dans la barre système jusqu'à ce que l'utilisateur la ferme
     requireInteraction: false,
     silent: false,
     data: { url: data.url || '/', timestamp: ts }

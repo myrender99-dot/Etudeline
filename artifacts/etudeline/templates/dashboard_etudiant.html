@@ -2419,7 +2419,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 // Force reload du Service Worker avec un paramètre de version
-                navigator.serviceWorker.register('/static/sw.js?v=4')
+                navigator.serviceWorker.register('/static/sw.js?v=18')
                     .then(registration => {
                         console.log('✅ Service Worker enregistré avec succès:', registration.scope);
                         // Force la mise à jour immédiate
