@@ -3060,19 +3060,43 @@
     <!-- Modal Paiement Dashboard -->
     <!-- Overlay de fermeture -->
     <div id="modal-payment-dashboard" onclick="closePaymentModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999;">
-        <!-- Carte bottom-sheet : position:fixed absolu, pas de flexbox pour le scroll -->
-        <div id="payment-card" onclick="event.stopPropagation()" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:460px; border-radius:16px 16px 0 0; background:white; box-shadow:0 -8px 30px rgba(0,0,0,0.2); overflow:hidden;">
 
-            <!-- Header : hauteur fixe mesurée par JS -->
-            <div id="payment-modal-header" style="padding:1.25rem 1.5rem 0.75rem; border-bottom:1px solid #f3f4f6; position:relative; background:white;">
+        <!-- Carte bottom-sheet
+             max-height: 90dvh  → viewport dynamique Android (Chrome 108+, Nov 2022)
+             max-height: 90vh   → fallback navigateurs anciens
+             display:flex + flex-direction:column → layout header / body scroll / footer
+             overflow:hidden    → clip la border-radius -->
+        <div id="payment-card" onclick="event.stopPropagation()" style="
+            position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+            width:100%; max-width:460px;
+            border-radius:16px 16px 0 0;
+            background:white;
+            box-shadow:0 -8px 30px rgba(0,0,0,0.2);
+            display:flex; flex-direction:column;
+            max-height:90vh;
+            overflow:hidden;
+        ">
+
+            <!-- Header : flex-shrink:0 → ne rétrécit jamais -->
+            <div id="payment-modal-header" style="flex-shrink:0; padding:1.25rem 1.5rem 0.75rem; border-bottom:1px solid #f3f4f6; position:relative; background:white;">
                 <button onclick="closePaymentModal()"
-                        style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#666; line-height:1; padding:4px;">✕</button>
+                        style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#666; line-height:1; padding:4px; touch-action:manipulation;">✕</button>
                 <h3 style="color:#7C3AED; margin:0 0 0.25rem; text-align:center;">🎓 Abonnement Étude LINE</h3>
                 <p style="text-align:center; color:#6b7280; margin:0; font-size:0.85rem;">Accédez aux exercices et solutions de votre filière</p>
             </div>
 
-            <!-- Corps scrollable : overflow-y:scroll (pas auto) + hauteur fixée en px par JS -->
-            <div id="payment-modal-body" style="overflow-y:scroll; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:1.25rem 1.5rem;">
+            <!-- Corps scrollable
+                 flex:1        → occupe tout l'espace restant entre header et footer
+                 min-height:0  → OBLIGATOIRE en flexbox pour que overflow-y fonctionne
+                 overflow-y:scroll → scroll natif (pas "auto" qui bug sur vieux Android)
+                 -webkit-overflow-scrolling:touch → scroll fluide iOS/Android -->
+            <div id="payment-modal-body" style="
+                flex:1; min-height:0;
+                overflow-y:scroll;
+                -webkit-overflow-scrolling:touch;
+                overscroll-behavior:contain;
+                padding:1.25rem 1.5rem;
+            ">
                 <div style="background:linear-gradient(135deg,#7C3AED,#6366f1); border-radius:12px; padding:0.85rem; text-align:center; margin-bottom:1rem; color:white;">
                     <div style="font-size:1.8rem; font-weight:800;">490 FCFA</div>
                     <div style="font-size:0.85rem; opacity:0.9;">pendant 2 mois (60 jours)</div>
@@ -3118,102 +3142,101 @@
                     <input type="file" name="proof_image" accept="image/*" required
                            style="width:100%; border:2px dashed #c084fc; border-radius:8px; padding:0.5rem; font-size:0.9rem; cursor:pointer; box-sizing:border-box;"
                            onchange="previewProofDash(this)">
+                    <!-- Aperçu image limité en hauteur → ne gonfle pas le layout -->
                     <div id="proof-preview-dash" style="margin-top:0.75rem; display:none;">
-                        <img id="proof-img-dash" style="max-width:100%; border-radius:8px; max-height:150px; object-fit:contain; display:block; margin:0 auto;">
+                        <img id="proof-img-dash" style="max-width:100%; width:100%; border-radius:8px; height:120px; object-fit:contain; display:block; background:#f8f8f8;">
                     </div>
                     <p style="color:#9ca3af; font-size:0.75rem; margin:0.4rem 0 1rem;">Formats acceptés : JPG, PNG, WEBP — Max 5 Mo</p>
                 </form>
                 {% endif %}
             </div>
 
-            <!-- Footer : toujours visible, hauteur mesurée par JS -->
+            <!-- Footer : flex-shrink:0 → toujours visible, jamais poussé hors écran -->
             {% if not has_pending_payment %}
-            <div id="payment-modal-footer" style="padding:1rem 1.5rem; border-top:1px solid #f3f4f6; background:white;">
+            <div id="payment-modal-footer" style="flex-shrink:0; padding:1rem 1.5rem; border-top:1px solid #f3f4f6; background:white;">
                 <button type="submit" form="payment-form-dash" id="submit-payment-dash"
-                        style="width:100%; background:linear-gradient(135deg,#7C3AED,#6366f1); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; touch-action:manipulation;">
+                        style="width:100%; background:linear-gradient(135deg,#7C3AED,#6366f1); color:white; border:none; padding:0.9rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; touch-action:manipulation;">
                     📤 Envoyer ma demande
                 </button>
             </div>
             {% endif %}
         </div>
     </div>
+
+    <style>
+        /* dvh = viewport dynamique : exclut la barre d'adresse Android Chrome */
+        /* Remplace le max-height:90vh du style inline quand dvh est supporté */
+        @supports (max-height: 1dvh) {
+            #payment-card { max-height: 90dvh !important; }
+        }
+    </style>
+
     <script>
-        /* ── Paiement : ouverture / fermeture ── */
+        /* ── Ouverture ── */
         function openPaymentModal() {
-            const modal = document.getElementById('modal-payment-dashboard');
+            var modal = document.getElementById('modal-payment-dashboard');
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            adjustPaymentModalHeight();
+            /* Double rAF : garantit que le navigateur a rendu la carte
+               avant qu'on mesure les hauteurs (fix timing Android) */
+            requestAnimationFrame(function() {
+                requestAnimationFrame(fixPaymentCardHeight);
+            });
         }
+
+        /* ── Fermeture ── */
         function closePaymentModal() {
             document.getElementById('modal-payment-dashboard').style.display = 'none';
             document.body.style.overflow = '';
         }
 
-        /* ── Calcul hauteur du corps scrollable en pixels ── */
-        /* Évite le bug Android où overflow-y:scroll sur flex child ne scrolle pas */
-        function adjustPaymentModalHeight() {
-            const vp = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-            const maxH = Math.floor(vp * 0.92);
-
-            const header = document.getElementById('payment-modal-header');
-            const footer = document.getElementById('payment-modal-footer');
-            const body   = document.getElementById('payment-modal-body');
-            if (!body) return;
-
-            const headerH = header ? header.offsetHeight : 0;
-            const footerH = footer ? footer.offsetHeight : 0;
-            const bodyH   = Math.max(maxH - headerH - footerH, 80);
-
-            body.style.height = bodyH + 'px';
+        /* ── Fallback JS pour navigateurs sans dvh ──
+           Pose max-height en px sur la carte.
+           Le flex-layout (flex:1 + min-height:0) gère le reste. */
+        function fixPaymentCardHeight() {
+            var card = document.getElementById('payment-card');
+            if (!card) return;
+            var vp = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            card.style.maxHeight = Math.floor(vp * 0.90) + 'px';
         }
 
-        /* Recalcul quand le clavier Android apparaît / disparaît */
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', adjustPaymentModalHeight);
-            window.visualViewport.addEventListener('scroll', adjustPaymentModalHeight);
-        } else {
-            window.addEventListener('resize', adjustPaymentModalHeight);
-        }
-
-        /* ── Remplace les onclick inline existants dans la page ── */
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('[data-open-payment]').forEach(function(btn) {
-                btn.addEventListener('click', openPaymentModal);
-            });
+        /* Recalcul si le clavier Android fait changer la taille du viewport */
+        (window.visualViewport || window).addEventListener('resize', function() {
+            if (document.getElementById('modal-payment-dashboard').style.display !== 'none') {
+                fixPaymentCardHeight();
+            }
         });
 
-        /* ── Sélection méthode de paiement ── */
+        /* ── Sélection méthode ── */
         function selectMethodDash(method) {
-            ['orange','wave'].forEach(function(m) {
-                document.getElementById('dash-btn-'+m).style.border = '2px solid #e5e7eb';
-                document.getElementById('dash-btn-'+m).style.background = 'white';
+            ['orange', 'wave'].forEach(function(m) {
+                document.getElementById('dash-btn-' + m).style.border = '2px solid #e5e7eb';
+                document.getElementById('dash-btn-' + m).style.background = 'white';
             });
-            document.getElementById('dash-btn-'+method).style.border = '2px solid #7C3AED';
-            document.getElementById('dash-btn-'+method).style.background = '#f5f3ff';
+            document.getElementById('dash-btn-' + method).style.border = '2px solid #7C3AED';
+            document.getElementById('dash-btn-' + method).style.background = '#f5f3ff';
         }
 
-        /* ── Aperçu image après upload ── */
+        /* ── Aperçu image ── */
         function previewProofDash(input) {
-            const preview = document.getElementById('proof-preview-dash');
-            const img     = document.getElementById('proof-img-dash');
+            var preview = document.getElementById('proof-preview-dash');
+            var img = document.getElementById('proof-img-dash');
             if (input.files && input.files[0]) {
-                const reader = new FileReader();
+                var reader = new FileReader();
                 reader.onload = function(e) {
                     img.src = e.target.result;
                     preview.style.display = 'block';
-                    /* Recalcule la hauteur après affichage de l'image */
-                    adjustPaymentModalHeight();
+                    /* L'image a une hauteur fixe (height:120px) → pas de recalcul nécessaire */
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
         /* ── Désactivation bouton à la soumission ── */
-        const formDash = document.getElementById('payment-form-dash');
+        var formDash = document.getElementById('payment-form-dash');
         if (formDash) {
             formDash.addEventListener('submit', function() {
-                const btn = document.getElementById('submit-payment-dash');
+                var btn = document.getElementById('submit-payment-dash');
                 btn.disabled = true;
                 btn.textContent = 'Envoi en cours...';
             });
