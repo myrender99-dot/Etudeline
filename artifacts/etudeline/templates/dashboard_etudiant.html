@@ -435,16 +435,51 @@
         }
         
         .semestre-section {
-            margin-bottom: 1.5rem;
+            margin: 1.2rem 0;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(102, 126, 234, 0.18);
+            border: 1px solid rgba(102, 126, 234, 0.15);
         }
-        
+
         .semestre-title {
-            font-size: 1.1rem;
-            color: #764ba2;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            padding-left: 0.5rem;
-            border-left: 4px solid #764ba2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.05rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: filter 0.2s ease;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            margin-bottom: 0;
+        }
+
+        .semestre-title:hover {
+            filter: brightness(0.92);
+        }
+
+        .semestre-chevron {
+            position: absolute;
+            right: 1.4rem;
+            font-size: 0.95rem;
+            transition: transform 0.3s ease;
+            opacity: 0.9;
+        }
+
+        .semestre-chevron.open {
+            transform: rotate(180deg);
+        }
+
+        .semestre-body {
+            display: none;
+            padding: 1rem 1.2rem;
+            background: #fafbff;
         }
         
         .chapitre-item {
@@ -1592,11 +1627,17 @@
             let visibleCount = 0;
             let totalCount = chapitres.length;
             
-            // Si la recherche est vide, afficher tout
+            // Si la recherche est vide, afficher tout, fermer les semestres
             if (searchQuery === '') {
                 chapitres.forEach(ch => ch.style.display = 'block');
                 matieres.forEach(mat => mat.style.display = 'block');
-                semestres.forEach(sem => sem.style.display = 'block');
+                semestres.forEach(sem => {
+                    sem.style.display = 'block';
+                    const body = sem.querySelector('.semestre-body');
+                    const chevron = sem.querySelector('.semestre-chevron');
+                    if (body) body.style.display = 'none';
+                    if (chevron) chevron.classList.remove('open');
+                });
                 document.getElementById('search-results').textContent = '';
                 return;
             }
@@ -1614,7 +1655,13 @@
                     // Afficher les parents (semestre et matière)
                     const semestreParent = chapitre.closest('.semestre-section');
                     const matiereParent = chapitre.closest('.matiere-item');
-                    if (semestreParent) semestreParent.style.display = 'block';
+                    if (semestreParent) {
+                        semestreParent.style.display = 'block';
+                        const semBody = semestreParent.querySelector('.semestre-body');
+                        const semChevron = semestreParent.querySelector('.semestre-chevron');
+                        if (semBody) semBody.style.display = 'block';
+                        if (semChevron) semChevron.classList.add('open');
+                    }
                     if (matiereParent) {
                         matiereParent.style.display = 'block';
                         // Ouvrir automatiquement la matière
@@ -1667,32 +1714,50 @@
             return niveaux[code] || code;
         }
         
+        function toggleSemestre(el) {
+            const section = el.closest('.semestre-section');
+            const body = section.querySelector('.semestre-body');
+            const chevron = section.querySelector('.semestre-chevron');
+            const isOpen = body.style.display === 'block';
+            body.style.display = isOpen ? 'none' : 'block';
+            if (isOpen) {
+                chevron.classList.remove('open');
+            } else {
+                chevron.classList.add('open');
+            }
+        }
+
         function renderHierarchy(hierarchy) {
             return hierarchy.map(niveau => `
                 <div class="niveau-card niveau-${niveau.niveau}">
                     <div class="niveau-header">${getNiveauComplet(niveau.niveau)}</div>
                     ${niveau.semestres.map(semestre => `
                         <div class="semestre-section">
-                            <div class="semestre-title">${semestre.semestre}</div>
-                            ${semestre.matieres.map((matiere, mIdx) => `
-                                <div class="matiere-item">
-                                    <div class="matiere-header" onclick="toggleMatiere(this)">
-                                        <h3>📚 ${matiere.matiere_nom}</h3>
-                                        <span class="toggle-arrow">▸</span>
+                            <div class="semestre-title" onclick="toggleSemestre(this)">
+                                <span>📅 ${semestre.semestre}</span>
+                                <span class="semestre-chevron">▼</span>
+                            </div>
+                            <div class="semestre-body">
+                                ${semestre.matieres.map((matiere, mIdx) => `
+                                    <div class="matiere-item">
+                                        <div class="matiere-header" onclick="toggleMatiere(this)">
+                                            <h3>📚 ${matiere.matiere_nom}</h3>
+                                            <span class="toggle-arrow">▸</span>
+                                        </div>
+                                        <div class="matiere-content">
+                                            ${matiere.chapitres.map(chapitre => `
+                                                <div class="chapitre-item" id="chapitre-${chapitre.id}">
+                                                    <a href="/chapitre/${chapitre.id}/etudiant" style="text-decoration: none; color: inherit; display: block;">
+                                                        <div class="chapitre-header" style="cursor: pointer;">
+                                                            <span class="chapitre-title">📖 Chapitre ${chapitre.numero} : ${chapitre.titre}</span>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            `).join('')}
+                                        </div>
                                     </div>
-                                    <div class="matiere-content">
-                                        ${matiere.chapitres.map(chapitre => `
-                                            <div class="chapitre-item" id="chapitre-${chapitre.id}">
-                                                <a href="/chapitre/${chapitre.id}/etudiant" style="text-decoration: none; color: inherit; display: block;">
-                                                    <div class="chapitre-header" style="cursor: pointer;">
-                                                        <span class="chapitre-title">📖 Chapitre ${chapitre.numero} : ${chapitre.titre}</span>
-                                                    </div>
-                                                </a>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            `).join('')}
+                                `).join('')}
+                            </div>
                         </div>
                     `).join('')}
                 </div>
