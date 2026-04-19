@@ -2260,27 +2260,26 @@
                                     </h4>
                                 </div>
                                 
-                                <!-- Boucle sur les matières -->
-                                {% for matiere_nom, matiere_data in hierarchie[niveau].items() %}
-                                <div class="matiere-section">
-                                    <div class="matiere-header" onclick="toggleMatiere('{{ niveau }}-{{ matiere_data.matiere_id }}')">
-                                        <span class="arrow" id="arrow-{{ niveau }}-{{ matiere_data.matiere_id }}">▸</span>
-                                        <span class="matiere-nom">📚 {{ matiere_nom }}</span>
-                                    </div>
-                                    
-                                    <div class="matiere-content" id="matiere-{{ niveau }}-{{ matiere_data.matiere_id }}" style="display: none;">
-                                        <!-- Boucle sur les semestres -->
-                                        {% for semestre in ["S1", "S2"] %}
-                                            {% if semestre in matiere_data.semestres %}
-                                            <div class="semestre-section">
-                                                <div class="semestre-header">
-                                                    <span>📅 Semestre {{ semestre[1] }}</span>
-                                                </div>
-                                                
-                                                <!-- Boucle sur les chapitres du semestre -->
-                                                {% for chapitre in matiere_data.semestres[semestre] %}
+                                <!-- Boucle sur les semestres -->
+                                {% for semestre in ["S1", "S2"] %}
+                                    {% if semestre in hierarchie[niveau] %}
+                                    <div class="semestre-section">
+                                        <div class="semestre-header">
+                                            <span>📅 Semestre {{ semestre[1] }}</span>
+                                        </div>
+                                        
+                                        <!-- Boucle sur les matières du semestre -->
+                                        {% for matiere_nom, matiere_data in hierarchie[niveau][semestre].items() %}
+                                        <div class="matiere-section">
+                                            <div class="matiere-header" onclick="toggleMatiere('{{ niveau }}-{{ semestre }}-{{ matiere_data.matiere_id }}')">
+                                                <span class="arrow" id="arrow-{{ niveau }}-{{ semestre }}-{{ matiere_data.matiere_id }}">▸</span>
+                                                <span class="matiere-nom">📚 {{ matiere_nom }}</span>
+                                            </div>
+                                            
+                                            <div class="matiere-content" id="matiere-{{ niveau }}-{{ semestre }}-{{ matiere_data.matiere_id }}" style="display: none;">
+                                                <!-- Boucle sur les chapitres -->
+                                                {% for chapitre in matiere_data.chapitres %}
                                                 <div class="chapitre-item" id="chapitre-{{ chapitre.id }}">
-                                                    <!-- Bouton cliquable pour ouvrir le chapitre en page complète -->
                                                     <a href="/chapitre/{{ chapitre.id }}/prof" style="text-decoration: none; color: inherit; display: block;">
                                                         <div class="chapitre-header-new" style="cursor: pointer;">
                                                             <div style="display: flex; align-items: center; gap: 0.8rem; flex: 1;">
@@ -2310,11 +2309,11 @@
                                                     </a>
                                                 </div>
                                                 {% endfor %}
-                                                </div>
-                                            {% endif %}
+                                            </div>
+                                        </div>
                                         {% endfor %}
                                     </div>
-                                </div>
+                                    {% endif %}
                                 {% endfor %}
                             </div>
                             {% endif %}
@@ -2856,24 +2855,24 @@
                 }
             });
             
-            // Masquer les semestres, matières et niveaux vides
-            semestres.forEach(sem => {
-                const visibleChaps = sem.querySelectorAll('.chapitre-item[style*="display: block"]');
-                if (visibleChaps.length === 0) {
-                    sem.style.display = 'none';
-                }
-            });
-            
+            // Masquer les matières, semestres et niveaux vides
             matieres.forEach(mat => {
-                const visibleSems = mat.querySelectorAll('.semestre-section[style*="display: block"]');
-                if (visibleSems.length === 0) {
+                const visibleChaps = mat.querySelectorAll('.chapitre-item[style*="display: block"]');
+                if (visibleChaps.length === 0) {
                     mat.style.display = 'none';
                 }
             });
             
-            niveaux.forEach(niv => {
-                const visibleMats = niv.querySelectorAll('.matiere-section[style*="display: block"]');
+            semestres.forEach(sem => {
+                const visibleMats = sem.querySelectorAll('.matiere-section[style*="display: block"]');
                 if (visibleMats.length === 0) {
+                    sem.style.display = 'none';
+                }
+            });
+            
+            niveaux.forEach(niv => {
+                const visibleSems = niv.querySelectorAll('.semestre-section[style*="display: block"]');
+                if (visibleSems.length === 0) {
                     niv.style.display = 'none';
                 }
             });

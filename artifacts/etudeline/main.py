@@ -4782,7 +4782,7 @@ async def get_chapitres_hierarchy(request: Request, db: Session = Depends(get_db
     else:
         return {"hierarchy": []}
     
-    # Build hierarchy: Niveau → Matière → Semestre → Chapitre
+    # Build hierarchy: Niveau → Semestre → Matière → Chapitre
     hierarchy_dict = {}
     
     for chapitre in chapitres:
@@ -4790,25 +4790,27 @@ async def get_chapitres_hierarchy(request: Request, db: Session = Depends(get_db
         matiere_obj = next((m for m in matieres if m.id == chapitre.matiere_id), None)
         matiere_nom = matiere_obj.nom if matiere_obj else "Matière inconnue"
         
-        # Initialize niveau if not exists
-        if chapitre.niveau not in hierarchy_dict:
-            hierarchy_dict[chapitre.niveau] = {}
+        niveau = chapitre.niveau
+        semestre_key = f"Semestre {chapitre.semestre}"
         
-        # Initialize matière if not exists
-        if matiere_nom not in hierarchy_dict[chapitre.niveau]:
-            hierarchy_dict[chapitre.niveau][matiere_nom] = {
-                "matiere_id": chapitre.matiere_id,
-                "matiere_nom": matiere_nom,
-                "semestres": {}
-            }
+        # Initialize niveau if not exists
+        if niveau not in hierarchy_dict:
+            hierarchy_dict[niveau] = {}
         
         # Initialize semestre if not exists
-        semestre_key = f"Semestre {chapitre.semestre}"
-        if semestre_key not in hierarchy_dict[chapitre.niveau][matiere_nom]["semestres"]:
-            hierarchy_dict[chapitre.niveau][matiere_nom]["semestres"][semestre_key] = []
+        if semestre_key not in hierarchy_dict[niveau]:
+            hierarchy_dict[niveau][semestre_key] = {}
+        
+        # Initialize matière if not exists
+        if matiere_nom not in hierarchy_dict[niveau][semestre_key]:
+            hierarchy_dict[niveau][semestre_key][matiere_nom] = {
+                "matiere_id": chapitre.matiere_id,
+                "matiere_nom": matiere_nom,
+                "chapitres": []
+            }
         
         # Add chapter
-        hierarchy_dict[chapitre.niveau][matiere_nom]["semestres"][semestre_key].append({
+        hierarchy_dict[niveau][semestre_key][matiere_nom]["chapitres"].append({
             "id": chapitre.id,
             "numero": chapitre.chapitre,
             "titre": chapitre.titre,
@@ -4824,55 +4826,50 @@ async def get_chapitres_hierarchy(request: Request, db: Session = Depends(get_db
             "created_by": chapitre.created_by
         })
     
-    # Convert to sorted list structure
+    # Convert to sorted list structure: niveau → semestres → matieres → chapitres
     hierarchy = []
     
-    # Sort levels (L1, L2, L3, M1, M2, BTS1, BTS2, BTS3, BTS4)
+    def get_semester_num(s):
+        parts = s.split()
+        if len(parts) > 1:
+            num_part = parts[1].replace('S', '').replace('s', '')
+            try:
+                return int(num_part)
+            except:
+                return 0
+        return 0
+    
+    def get_chapter_num(chap):
+        import re
+        match = re.search(r'(\d+)', str(chap["numero"]))
+        if match:
+            return int(match.group(1))
+        return 999
+    
     niveau_order = ["L1", "L2", "L3", "M1", "M2", "BTS1", "BTS2", "BTS3", "BTS4"]
     for niveau in sorted(hierarchy_dict.keys(), key=lambda x: niveau_order.index(x) if x in niveau_order else 99):
-        matieres_list = []
+        semestres_list = []
         
-        # Sort matières alphabetically
-        for matiere_nom in sorted(hierarchy_dict[niveau].keys()):
-            matiere_data = hierarchy_dict[niveau][matiere_nom]
-            semestres_list = []
+        for sem_key in sorted(hierarchy_dict[niveau].keys(), key=get_semester_num):
+            matieres_list = []
             
-            # Sort semesters (Semestre 1, Semestre 2, etc.)
-            def get_semester_num(s):
-                parts = s.split()
-                if len(parts) > 1:
-                    # Extract number from "Semestre 1" or similar
-                    num_part = parts[1].replace('S', '').replace('s', '')
-                    try:
-                        return int(num_part)
-                    except:
-                        return 0
-                return 0
-            
-            for sem_key in sorted(matiere_data["semestres"].keys(), key=get_semester_num):
-                # Sort chapters by numero - extract number from "Chapitre X" format
-                def get_chapter_num(chap):
-                    import re
-                    match = re.search(r'(\d+)', str(chap["numero"]))
-                    if match:
-                        return int(match.group(1))
-                    return 999
-                
-                chapters_sorted = sorted(matiere_data["semestres"][sem_key], key=get_chapter_num)
-                semestres_list.append({
-                    "semestre": sem_key,
+            for matiere_nom in sorted(hierarchy_dict[niveau][sem_key].keys()):
+                matiere_data = hierarchy_dict[niveau][sem_key][matiere_nom]
+                chapters_sorted = sorted(matiere_data["chapitres"], key=get_chapter_num)
+                matieres_list.append({
+                    "matiere_id": matiere_data["matiere_id"],
+                    "matiere_nom": matiere_data["matiere_nom"],
                     "chapitres": chapters_sorted
                 })
             
-            matieres_list.append({
-                "matiere_id": matiere_data["matiere_id"],
-                "matiere_nom": matiere_data["matiere_nom"],
-                "semestres": semestres_list
+            semestres_list.append({
+                "semestre": sem_key,
+                "matieres": matieres_list
             })
         
         hierarchy.append({
             "niveau": niveau,
-            "matieres": matieres_list
+            "semestres": semestres_list
         })
     
     return {"hierarchy": hierarchy, "role": role}

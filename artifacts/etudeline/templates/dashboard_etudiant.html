@@ -1628,18 +1628,18 @@
                 }
             });
             
-            // Masquer les semestres et matières vides
-            semestres.forEach(sem => {
-                const visibleChaps = sem.querySelectorAll('.chapitre-item[style*="display: block"]');
+            // Masquer les matières et semestres vides
+            matieres.forEach(mat => {
+                const visibleChaps = mat.querySelectorAll('.chapitre-item[style*="display: block"]');
                 if (visibleChaps.length === 0) {
-                    sem.style.display = 'none';
+                    mat.style.display = 'none';
                 }
             });
             
-            matieres.forEach(mat => {
-                const visibleSems = mat.querySelectorAll('.semestre-section[style*="display: block"]');
-                if (visibleSems.length === 0) {
-                    mat.style.display = 'none';
+            semestres.forEach(sem => {
+                const visibleMats = sem.querySelectorAll('.matiere-item[style*="display: block"]');
+                if (visibleMats.length === 0) {
+                    sem.style.display = 'none';
                 }
             });
             
@@ -1671,17 +1671,17 @@
             return hierarchy.map(niveau => `
                 <div class="niveau-card niveau-${niveau.niveau}">
                     <div class="niveau-header">${getNiveauComplet(niveau.niveau)}</div>
-                    ${niveau.matieres.map((matiere, mIdx) => `
-                        <div class="matiere-item">
-                            <div class="matiere-header" onclick="toggleMatiere(this)">
-                                <h3>📚 ${matiere.matiere_nom}</h3>
-                                <span class="toggle-arrow">▸</span>
-                            </div>
-                            <div class="matiere-content">
-                                ${matiere.semestres.map(semestre => `
-                                    <div class="semestre-section">
-                                        <div class="semestre-title">${semestre.semestre}</div>
-                                        ${semestre.chapitres.map(chapitre => `
+                    ${niveau.semestres.map(semestre => `
+                        <div class="semestre-section">
+                            <div class="semestre-title">${semestre.semestre}</div>
+                            ${semestre.matieres.map((matiere, mIdx) => `
+                                <div class="matiere-item">
+                                    <div class="matiere-header" onclick="toggleMatiere(this)">
+                                        <h3>📚 ${matiere.matiere_nom}</h3>
+                                        <span class="toggle-arrow">▸</span>
+                                    </div>
+                                    <div class="matiere-content">
+                                        ${matiere.chapitres.map(chapitre => `
                                             <div class="chapitre-item" id="chapitre-${chapitre.id}">
                                                 <a href="/chapitre/${chapitre.id}/etudiant" style="text-decoration: none; color: inherit; display: block;">
                                                     <div class="chapitre-header" style="cursor: pointer;">
@@ -1691,8 +1691,8 @@
                                             </div>
                                         `).join('')}
                                     </div>
-                                `).join('')}
-                            </div>
+                                </div>
+                            `).join('')}
                         </div>
                     `).join('')}
                 </div>
