@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ chapitre.titre }} - Étude LINE</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    
+    <!-- MathJax pour le rendu des équations mathématiques -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Chart.js pour le rendu des graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        /* Désactiver sélection accidentelle sur l'interface */
+        button, .header, .header *, .back-button,
+        .tabs-wrapper, .tabs-container, .tab-button,
+        h1, h2, h3, h4, .chapter-title,
+        .chapter-info, .file-viewer-container button {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Garder la sélection pour le contenu des cours */
+        .tab-content, .cours-content, .exercice-content,
+        .solution-content, .content-text, p,
+        .file-content, textarea {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+
+        .chapter-title {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .chapter-info {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs-wrapper {
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+        }
+        
+        .tabs-container {
+            display: flex;
+            gap: 0;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 1px;
+            background: transparent;
+            border: none;
+            font-size: clamp(0.45em, 2.2vw, 0.9em);
+            font-weight: 600;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            white-space: nowrap;
+            letter-spacing: -0.02em;
+        }
+
+        .tab-button:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            background: white;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .content-container {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .content-text {
+            line-height: 1.8;
+            color: #495057;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .file-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .file-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .no-content {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .no-content-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Comments Section */
+        .comment-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1em;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .comment-list {
+            margin-top: 30px;
+        }
+
+        .comment-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .comment-date {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .comment-text {
+            color: #495057;
+            line-height: 1.6;
+        }
+        
+        .comment-delete {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .comment-delete:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        .file-name {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .file-container {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .chapter-title {
+                font-size: 1.5em;
+            }
+
+            .tab-button {
+                padding: 12px 0.5px;
+            }
+
+            .content-container {
+                padding: 20px 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .tab-button {
+                padding: 10px 0px;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .chapter-title {
+                font-size: 1.3em;
+            }
+            
+            .content-container {
+                padding: 15px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ dashboard_url }}#chapitre-{{ chapitre.id }}" class="back-button">
+                ← Retour aux chapitres
+            </a>
+            <div class="chapter-title">
+                📖 Chapitre {{ chapitre.chapitre }} : {{ chapitre.titre }}
+            </div>
+            <div class="chapter-info">
+                {{ niveau }} • {{ matiere_nom }} • {{ semestre }}
+            </div>
+        </div>
+
+        <div class="tabs-wrapper">
+            <div class="tabs-container">
+                <button class="tab-button active" onclick="showTab('cours')">
+                    📘 Cours
+                </button>
+                <button class="tab-button" onclick="showTab('exercices')">
+                    ✏️ Exercices
+                </button>
+                <button class="tab-button" onclick="showTab('solutions')">
+                    ✅ Solutions
+                </button>
+                <button class="tab-button" onclick="showTab('commentaires')">
+                    💬 Commentaires
+                </button>
+            </div>
+        </div>
+
+        <div class="content-container">
+            <!-- Onglet Cours -->
+            <div id="tab-cours" class="tab-content active">
+                <div class="section-title">📘 Cours</div>
+                {% if chapitre.cours_texte or chapitre.cours_fichier_nom %}
+                    {% if chapitre.cours_texte %}
+                        <div class="content-text">{{ chapitre.cours_texte | safe }}</div>
+                    {% endif %}
+                    {% if chapitre.cours_fichier_nom %}
+                        {% set fichier_noms = chapitre.cours_fichier_nom.split('|||') %}
+                        {% set fichier_paths = chapitre.cours_fichier_path.split('|||') %}
+                        {% for i in range(fichier_noms|length) %}
+                        <div class="file-container" style="margin-bottom: 12px; padding: 10px; background: #f1f8e9; border-radius: 8px; border: 2px solid #c8e6c9;">
+                            <div class="file-name" style="color: #2e7d32; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">
+                                📎 {{ fichier_noms[i] }}
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                <a href="/lecteur/{{ fichier_paths[i] }}" 
+                                   style="background: #4caf50; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                                    👁️ Lire
+                                </a>
+                                <a href="/files/download/{{ fichier_paths[i] }}" 
+                                   class="download-button"
+                                   style="background: #2e7d32; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                                    ⬇️ Télécharger
+                                </a>
+                                {% if user_type == "professeur" %}
+                                <button onclick="renommerFichier({{ chapitre.id }}, 'cours', {{ i }}, this)"
+                                    title="Renommer"
+                                    style="background: #f59e0b; color: white; width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s;">
+                                    ✏️
+                                </button>
+                                <button onclick="supprimerFichier({{ chapitre.id }}, 'cours', {{ i }}, this)"
+                                    title="Supprimer"
+                                    style="background: #e53935; color: white; width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s;">
+                                    🗑️
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% else %}
+                    <div class="no-content">
+                        <div class="no-content-icon">📚</div>
+                        <p>Aucun cours disponible pour ce chapitre</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Onglet Exercices -->
+            <div id="tab-exercices" class="tab-content">
+                <div class="section-title">✏️ Exercices</div>
+
+                {% if user_type == "etudiant" and not subscription_active and not paiement_masque %}
+                    <!-- Barrière Premium Exercices -->
+                    <div style="text-align:center; padding:2.5rem 1.5rem; border:2px dashed #fb923c; border-radius:16px; background:linear-gradient(135deg,#fff7ed 0%,#fefce8 100%); margin-top:1rem;">
+                        <div style="font-size:2.5rem; margin-bottom:0.75rem;">🔒</div>
+                        <h3 style="color:#ea580c; margin:0 0 0.5rem; font-size:1.3rem;">Accès Premium</h3>
+                        <p style="color:#6b7280; margin:0 0 0.25rem; font-size:0.95rem;">Abonnement annuel pour accéder aux exercices</p>
+                        <p style="color:#ea580c; font-weight:700; font-size:1.4rem; margin:0.5rem 0 1.25rem;">1 000 FCFA / an</p>
+
+                        {% if has_pending_payment %}
+                            <div style="background:#fefce8; border:1px solid #fbbf24; border-radius:10px; padding:0.85rem 1.25rem; display:inline-block; margin-bottom:1rem;">
+                                🟡 <strong>Demande en attente de validation</strong><br>
+                                <small style="color:#92400e;">L'administrateur va vérifier votre paiement sous peu.</small>
+                            </div>
+                        {% elif last_payment_status == "rejected" %}
+                            <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:0.85rem 1.25rem; display:inline-block; margin-bottom:1rem;">
+                                🔴 <strong>Demande refusée</strong><br>
+                                <small style="color:#991b1b;">Vous pouvez soumettre une nouvelle demande.</small>
+                            </div>
+                            <br>
+                            <button onclick="document.getElementById('modal-payment').style.display='flex'"
+                                    style="background:linear-gradient(135deg,#ea580c,#f97316); color:white; border:none; padding:0.75rem 2rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(234,88,12,0.35);">
+                                Payer maintenant
+                            </button>
+                        {% else %}
+                            <button onclick="document.getElementById('modal-payment').style.display='flex'"
+                                    style="background:linear-gradient(135deg,#ea580c,#f97316); color:white; border:none; padding:0.75rem 2rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(234,88,12,0.35);">
+                                Payer maintenant
+                            </button>
+                        {% endif %}
+
+                        <p style="color:#9ca3af; font-size:0.8rem; margin-top:1rem;">Paiement sécurisé via Orange Money ou Wave</p>
+                    </div>
+
+                {% else %}
+                    <!-- Accès autorisé aux exercices -->
+                    {% if subscription_active and subscription_expires and user_type == "etudiant" %}
+                        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:0.6rem 1rem; margin-bottom:1rem; font-size:0.85rem; color:#166534; display:inline-block;">
+                            🟢 <strong>Abonnement actif</strong> — expire le {{ subscription_expires[:10] if subscription_expires else '' }}
+                        </div>
+                    {% endif %}
+
+                    {% if chapitre.exercice_texte or chapitre.exercice_fichier_nom %}
+                        {% if chapitre.exercice_texte %}
+                            <div class="content-text">{{ chapitre.exercice_texte | safe }}</div>
+                        {% endif %}
+                        {% if chapitre.exercice_fichier_nom %}
+                            {% set fichier_noms = chapitre.exercice_fichier_nom.split('|||') %}
+                            {% set fichier_paths = chapitre.exercice_fichier_path.split('|||') %}
+                            {% for i in range(fichier_noms|length) %}
+                            <div class="file-container" style="margin-bottom: 12px; padding: 10px; background: #fffde7; border-radius: 8px; border: 2px solid #fff176;">
+                                <div class="file-name" style="color: #f57c00; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">
+                                    📎 {{ fichier_noms[i] }}
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                    <a href="/lecteur/{{ fichier_paths[i] }}" 
+                                       style="background: #ff9800; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                                        👁️ Lire
+                                    </a>
+                                    <a href="/files/download/{{ fichier_paths[i] }}" 
+                                       class="download-button"
+                                       style="background: #e65100; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                                        ⬇️ Télécharger
+                                    </a>
+                                    {% if user_type == "professeur" %}
+                                    <button onclick="renommerFichier({{ chapitre.id }}, 'exercice', {{ i }}, this)"
+                                        title="Renommer"
+                                        style="background: #f59e0b; color: white; width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s;">
+                                        ✏️
+                                    </button>
+                                    <button onclick="supprimerFichier({{ chapitre.id }}, 'exercice', {{ i }}, this)"
+                                        title="Supprimer"
+                                        style="background: #e53935; color: white; width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s;">
+                                        🗑️
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <div class="no-content">
+                            <div class="no-content-icon">✏️</div>
+                            <p>Aucun exercice disponible pour ce chapitre</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Onglet Solutions -->
+            <div id="tab-solutions" class="tab-content">
+                <div class="section-title">✅ Solutions</div>
+
+                {% if user_type == "etudiant" and not subscription_active and not paiement_masque %}
+                    <!-- Barrière Premium -->
+                    <div style="text-align:center; padding:2.5rem 1.5rem; border:2px dashed #c084fc; border-radius:16px; background:linear-gradient(135deg,#faf5ff 0%,#f0f9ff 100%); margin-top:1rem;">
+                        <div style="font-size:2.5rem; margin-bottom:0.75rem;">🔒</div>
+                        <h3 style="color:#7C3AED; margin:0 0 0.5rem; font-size:1.3rem;">Accès Premium</h3>
+                        <p style="color:#6b7280; margin:0 0 0.25rem; font-size:0.95rem;">Abonnement annuel pour accéder aux solutions</p>
+                        <p style="color:#7C3AED; font-weight:700; font-size:1.4rem; margin:0.5rem 0 1.25rem;">1 000 FCFA / an</p>
+
+                        {% if has_pending_payment %}
+                            <div style="background:#fefce8; border:1px solid #fbbf24; border-radius:10px; padding:0.85rem 1.25rem; display:inline-block; margin-bottom:1rem;">
+                                🟡 <strong>Demande en attente de validation</strong><br>
+                                <small style="color:#92400e;">L'administrateur va vérifier votre paiement sous peu.</small>
+                            </div>
+                        {% elif last_payment_status == "rejected" %}
+                            <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:0.85rem 1.25rem; display:inline-block; margin-bottom:1rem;">
+                                🔴 <strong>Demande refusée</strong><br>
+                                <small style="color:#991b1b;">Vous pouvez soumettre une nouvelle demande.</small>
+                            </div>
+                            <br>
+                            <button onclick="document.getElementById('modal-payment').style.display='flex'" 
+                                    style="background:linear-gradient(135deg,#7C3AED,#6366f1); color:white; border:none; padding:0.75rem 2rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(124,58,237,0.35);">
+                                Payer maintenant
+                            </button>
+                        {% else %}
+                            <button onclick="document.getElementById('modal-payment').style.display='flex'" 
+                                    style="background:linear-gradient(135deg,#7C3AED,#6366f1); color:white; border:none; padding:0.75rem 2rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(124,58,237,0.35);">
+                                Payer maintenant
+                            </button>
+                        {% endif %}
+
+                        <p style="color:#9ca3af; font-size:0.8rem; margin-top:1rem;">Paiement sécurisé via Orange Money ou Wave</p>
+                    </div>
+
+                {% else %}
+                    <!-- Accès autorisé aux solutions -->
+                    {% if subscription_active and subscription_expires %}
+                        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:0.6rem 1rem; margin-bottom:1rem; font-size:0.85rem; color:#166534; display:inline-block;">
+                            🟢 <strong>Abonnement actif</strong> — expire le {{ subscription_expires[:10] if subscription_expires else '' }}
+                        </div>
+                    {% endif %}
+
+                    {% if chapitre.solution_texte or chapitre.solution_fichier_nom %}
+                        {% if chapitre.solution_texte %}
+                            <div class="content-text">{{ chapitre.solution_texte | safe }}</div>
+                        {% endif %}
+                        {% if chapitre.solution_fichier_nom %}
+                            {% set fichier_noms = chapitre.solution_fichier_nom.split('|||') %}
+                            {% set fichier_paths = chapitre.solution_fichier_path.split('|||') %}
+                            {% for i in range(fichier_noms|length) %}
+                            <div class="file-container" style="margin-bottom: 12px; padding: 10px; background: #e8f4fd; border-radius: 8px; border: 2px solid #90caf9;">
+                                <div class="file-name" style="color: #1976d2; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">
+                                    📎 {{ fichier_noms[i] }}
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                    <a href="/lecteur/{{ fichier_paths[i] }}" 
+                                       style="background: #2196f3; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                                        👁️ Lire
+                                    </a>
+                                    <a href="/files/download/{{ fichier_paths[i] }}" 
+                                       class="download-button"
+                                       style="background: #1565c0; color: white; padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                                        ⬇️ Télécharger
+                                    </a>
+                                    {% if user_type == "professeur" %}
+                                    <button onclick="renommerFichier({{ chapitre.id }}, 'solution', {{ i }}, this)"
+                                        title="Renommer"
+                                        style="background: #f59e0b; color: white; width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s;">
+                                        ✏️
+                                    </button>
+                                    <button onclick="supprimerFichier({{ chapitre.id }}, 'solution', {{ i }}, this)"
+                                        title="Supprimer"
+                                        style="background: #e53935; color: white; width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s;">
+                                        🗑️
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <div class="no-content">
+                            <div class="no-content-icon">✅</div>
+                            <p>Aucune solution disponible pour ce chapitre</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Onglet Commentaires -->
+            <div id="tab-commentaires" class="tab-content">
+                <div class="section-title">💬 Commentaires & Discussions</div>
+                
+                <div class="comment-form">
+                    <form method="POST" action="/api/chapitre/{{ chapitre.id }}/commentaire">
+                        <textarea 
+                            name="texte" 
+                            class="comment-textarea" 
+                            placeholder="Écrivez votre commentaire ou posez une question..."
+                            required
+                        ></textarea>
+                        <button type="submit" class="submit-button">📝 Publier le commentaire</button>
+                    </form>
+                </div>
+
+                <div class="comment-list">
+                    {% if commentaires %}
+                        {% for comment in commentaires %}
+                            <div class="comment-item">
+                                <div class="comment-header">
+                                    <span class="comment-author">
+                                        {% if comment.auteur_type == 'professeur' %}
+                                            👨‍🏫 {{ comment.auteur_nom }}
+                                        {% elif comment.auteur_type == 'etudiant' %}
+                                            🎓 {{ comment.auteur_nom }}
+                                        {% else %}
+                                            👤 {{ comment.auteur_nom }}
+                                        {% endif %}
+                                    </span>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="comment-date">{{ comment.created_at.strftime('%d/%m/%Y à %H:%M') }}</span>
+                                        {% if comment.auteur_type == user_type and comment.auteur_id == user_id %}
+                                            <button class="comment-delete" onclick="deleteComment({{ comment.id }})">🗑️</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="comment-text">{{ comment.texte }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-content">
+                            <div class="no-content-icon">💬</div>
+                            <p>Aucun commentaire pour le moment. Soyez le premier à commenter !</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if user_type == "etudiant" and not subscription_active and not paiement_masque %}
+    <!-- Modal Paiement (global, accessible depuis tous les onglets) -->
+    <div id="modal-payment" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
+        <div style="background:white; border-radius:16px; padding:2rem; max-width:460px; width:100%; position:relative; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+            <button onclick="document.getElementById('modal-payment').style.display='none'"
+                    style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#666;">✕</button>
+
+            <h3 style="color:#7C3AED; margin:0 0 1.25rem; text-align:center;">💳 Paiement Abonnement Premium</h3>
+
+            <form action="/payments/request" method="post" enctype="multipart/form-data" id="payment-form">
+                <p style="font-weight:600; color:#374151; margin-bottom:0.5rem;">Choisissez votre méthode de paiement :</p>
+                <div style="display:flex; gap:1rem; margin-bottom:1.25rem;">
+                    <label style="flex:1; cursor:pointer;">
+                        <input type="radio" name="payment_method" value="orange" required style="display:none;" onchange="selectMethod('orange')">
+                        <div id="btn-orange" style="border:2px solid #e5e7eb; border-radius:10px; padding:0.75rem; text-align:center; transition:all 0.2s;">
+                            🟠<br><strong>Orange Money</strong>
+                        </div>
+                    </label>
+                    <label style="flex:1; cursor:pointer;">
+                        <input type="radio" name="payment_method" value="wave" required style="display:none;" onchange="selectMethod('wave')">
+                        <div id="btn-wave" style="border:2px solid #e5e7eb; border-radius:10px; padding:0.75rem; text-align:center; transition:all 0.2s;">
+                            🔵<br><strong>Wave</strong>
+                        </div>
+                    </label>
+                </div>
+
+                <div style="background:#f3f4f6; border-radius:10px; padding:1rem; margin-bottom:1.25rem; text-align:center;">
+                    <p style="margin:0 0 0.25rem; color:#374151; font-size:0.9rem;">Envoyez <strong>1 000 FCFA</strong> au :</p>
+                    <p style="margin:0 0 0.25rem; font-size:1.3rem; font-weight:700; color:#111;">775 77 14 43</p>
+                    <p style="margin:0; color:#6b7280; font-size:0.85rem;">Nom : <strong>ELN Technologies</strong></p>
+                </div>
+
+                <p style="font-weight:600; color:#374151; margin-bottom:0.5rem;">Capture d'écran de la confirmation :</p>
+                <input type="file" name="proof_image" accept="image/*" required
+                       style="width:100%; border:2px dashed #c084fc; border-radius:8px; padding:0.5rem; font-size:0.9rem; cursor:pointer; box-sizing:border-box;"
+                       onchange="previewProof(this)">
+                <div id="proof-preview" style="margin-top:0.5rem; display:none;">
+                    <img id="proof-img-preview" style="max-width:100%; border-radius:8px; max-height:200px; object-fit:contain;">
+                </div>
+                <p style="color:#9ca3af; font-size:0.75rem; margin:0.4rem 0 1.25rem;">Formats acceptés : JPG, PNG, WEBP — Max 5 Mo</p>
+
+                <button type="submit" id="submit-payment-btn"
+                        style="width:100%; background:linear-gradient(135deg,#7C3AED,#6366f1); color:white; border:none; padding:0.85rem; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer;">
+                    📤 Envoyer ma demande
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function selectMethod(method) {
+            ['orange','wave'].forEach(m => {
+                document.getElementById('btn-'+m).style.border = '2px solid #e5e7eb';
+                document.getElementById('btn-'+m).style.background = 'white';
+                document.getElementById('btn-'+m).style.color = '#111';
+            });
+            const el = document.getElementById('btn-'+method);
+            el.style.border = '2px solid #7C3AED';
+            el.style.background = '#f5f3ff';
+        }
+        function previewProof(input) {
+            const preview = document.getElementById('proof-preview');
+            const img = document.getElementById('proof-img-preview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { img.src = e.target.result; preview.style.display = 'block'; };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        document.getElementById('payment-form').addEventListener('submit', function() {
+            document.getElementById('submit-payment-btn').disabled = true;
+            document.getElementById('submit-payment-btn').textContent = 'Envoi en cours...';
+        });
+    </script>
+    {% endif %}
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            const allTabs = document.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+
+            // Deactivate all buttons
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(button => button.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            // Activate selected button - trouver le bon bouton basé sur le tabName
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                const onclick = button.getAttribute('onclick');
+                if (onclick && onclick.includes(`'${tabName}'`)) {
+                    button.classList.add('active');
+                }
+            });
+            
+            // Sauvegarder l'onglet actif pour le restaurer après navigation
+            localStorage.setItem('chapitre_active_tab_{{ chapitre.id }}', tabName);
+        }
+
+        // Sauvegarder l'onglet actif avant d'ouvrir un fichier
+        function saveActiveTabBeforeNavigation() {
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab) {
+                const tabName = activeTab.id.replace('tab-', '');
+                localStorage.setItem('chapitre_active_tab_{{ chapitre.id }}', tabName);
+            }
+        }
+
+        // Vérifier le hash dans l'URL au chargement de la page
+        window.addEventListener('DOMContentLoaded', function() {
+            // 1. Priorité au hash dans l'URL
+            const hash = window.location.hash.substring(1); // Enlever le #
+            if (hash && ['cours', 'exercices', 'solutions', 'commentaires'].includes(hash)) {
+                showTab(hash);
+                return;
+            }
+            
+            // 2. Sinon, restaurer l'onglet depuis localStorage (retour du lecteur)
+            const savedTab = localStorage.getItem('chapitre_active_tab_{{ chapitre.id }}');
+            if (savedTab && ['cours', 'exercices', 'solutions', 'commentaires'].includes(savedTab)) {
+                showTab(savedTab);
+            }
+            
+            // Ajouter un listener sur tous les liens "Lire" pour sauvegarder l'onglet actif
+            const lecteurLinks = document.querySelectorAll('a[href^="/lecteur/"]');
+            lecteurLinks.forEach(link => {
+                link.addEventListener('click', saveActiveTabBeforeNavigation);
+            });
+        });
+        
+        // Fonction pour supprimer un commentaire
+        async function deleteComment(commentId) {
+            if (!confirm('Voulez-vous vraiment supprimer ce commentaire ?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/commentaires/${commentId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Recharger la page pour afficher la mise à jour
+                    window.location.reload();
+                } else {
+                    alert('Erreur lors de la suppression du commentaire');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur réseau. Veuillez réessayer.');
+            }
+        }
+        
+        // Charger l'état des téléchargements et afficher/cacher les boutons
+        async function loadDownloadButtonsStatus() {
+            try {
+                const response = await fetch('/api/parametres/telechargements');
+                
+                // Vérifier que la réponse est OK avant de parser
+                if (!response.ok) {
+                    throw new Error('Erreur API: ' + response.status);
+                }
+                
+                const data = await response.json();
+                
+                // Récupérer tous les boutons de téléchargement
+                const downloadButtons = document.querySelectorAll('.download-button');
+                
+                if (data.actif) {
+                    // Activer tous les boutons de téléchargement
+                    downloadButtons.forEach(btn => {
+                        btn.style.display = 'inline-flex';
+                    });
+                } else {
+                    // Désactiver tous les boutons de téléchargement
+                    downloadButtons.forEach(btn => {
+                        btn.style.display = 'none';
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de l\'état des téléchargements:', error);
+                // En cas d'erreur, cacher les boutons par défaut pour plus de sécurité
+                const downloadButtons = document.querySelectorAll('.download-button');
+                downloadButtons.forEach(btn => {
+                    btn.style.display = 'none';
+                });
+            }
+        }
+        
+        // Charger l'état des téléchargements au chargement de la page
+        window.addEventListener('DOMContentLoaded', function() {
+            loadDownloadButtonsStatus();
+            
+            // ==================== RENDU SCIENTIFIQUE (ÉQUATIONS + GRAPHIQUES) ====================
+            
+            // 1. Rendre les équations mathématiques avec MathJax
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise().then(() => {
+                    console.log('✅ Équations mathématiques rendues avec MathJax');
+                }).catch((err) => {
+                    console.error('❌ Erreur rendu MathJax:', err);
+                });
+            }
+            
+            // 2. Rendre les graphiques Chart.js
+            if (window.Chart) {
+                const canvases = document.querySelectorAll('canvas[data-chart]');
+                canvases.forEach((canvas) => {
+                    try {
+                        const chartData = JSON.parse(canvas.getAttribute('data-chart'));
+                        
+                        new Chart(canvas, {
+                            type: chartData.type,
+                            data: {
+                                labels: chartData.labels,
+                                datasets: [{
+                                    label: chartData.title,
+                                    data: chartData.data,
+                                    borderColor: 'rgb(75, 192, 192)',
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    tension: 0.1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: chartData.title
+                                    }
+                                }
+                            }
+                        });
+                        console.log('✅ Graphique rendu:', chartData.title);
+                    } catch (error) {
+                        console.error('❌ Erreur rendu graphique:', error);
+                    }
+                });
+            }
+        });
+
+        // =============================================
+        // Renommage de fichier (vue professeur)
+        // =============================================
+        async function renommerFichier(chapitreId, typeFichier, index, btn) {
+            // Récupérer le nom actuel depuis le label du fichier
+            const container = btn.closest('.file-container');
+            const nomLabel = container.querySelector('.file-name');
+            const nomActuel = nomLabel.textContent.trim().replace(/^📎\s*/, '');
+
+            // Afficher la modale inline
+            let existing = document.getElementById('rename-modal');
+            if (existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'rename-modal';
+            modal.style.cssText = `
+                position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+                display: flex; align-items: center; justify-content: center;
+                z-index: 9999; padding: 16px;
+            `;
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 16px; padding: 28px; width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <h3 style="margin: 0 0 6px; font-size: 1.1rem; color: #1f2937; font-weight: 700;">✏️ Renommer le fichier</h3>
+                    <p style="margin: 0 0 18px; font-size: 0.85rem; color: #6b7280;">Saisissez le nouveau nom d'affichage du fichier.</p>
+                    <input id="rename-input" type="text" value="${nomActuel.replace(/"/g, '&quot;')}"
+                        style="width: 100%; padding: 10px 14px; border: 2px solid #d1d5db; border-radius: 8px;
+                               font-size: 0.95rem; outline: none; box-sizing: border-box; transition: border 0.2s;"
+                        onfocus="this.style.borderColor='#6366f1'"
+                        onblur="this.style.borderColor='#d1d5db'"
+                        onkeydown="if(event.key==='Enter')document.getElementById('rename-confirm').click();
+                                   if(event.key==='Escape')document.getElementById('rename-modal').remove();" />
+                    <div style="display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end;">
+                        <button onclick="document.getElementById('rename-modal').remove()"
+                            style="padding: 9px 20px; border-radius: 8px; border: 2px solid #d1d5db;
+                                   background: white; color: #374151; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                            Annuler
+                        </button>
+                        <button id="rename-confirm"
+                            style="padding: 9px 20px; border-radius: 8px; border: none;
+                                   background: #6366f1; color: white; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                            ✅ Enregistrer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const input = document.getElementById('rename-input');
+            input.focus();
+            input.select();
+
+            // Fermer en cliquant hors de la modale
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+            document.getElementById('rename-confirm').addEventListener('click', async () => {
+                const nouveauNom = input.value.trim();
+                if (!nouveauNom) { input.style.borderColor = '#ef4444'; input.focus(); return; }
+
+                const confirmBtn = document.getElementById('rename-confirm');
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = '⏳ Enregistrement...';
+
+                try {
+                    const resp = await fetch(`/api/chapitre/${chapitreId}/rename-fichier`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type_fichier: typeFichier, index: index, nouveau_nom: nouveauNom })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        nomLabel.textContent = '📎 ' + nouveauNom;
+                        modal.remove();
+                    } else {
+                        alert('Erreur : ' + (data.message || 'Impossible de renommer le fichier.'));
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = '✅ Enregistrer';
+                    }
+                } catch (e) {
+                    alert('Erreur réseau. Veuillez réessayer.');
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = '✅ Enregistrer';
+                }
+            });
+        }
+
+        // =============================================
+        // Suppression de fichier (vue professeur)
+        // =============================================
+        async function supprimerFichier(chapitreId, typeFichier, index, btn) {
+            const labels = { cours: 'cours', exercice: 'exercice', solution: 'solution' };
+            const label = labels[typeFichier] || typeFichier;
+            if (!confirm(`Supprimer ce fichier de ${label} ? Cette action est irréversible.`)) return;
+
+            btn.disabled = true;
+            btn.textContent = '⏳';
+
+            try {
+                const resp = await fetch(`/api/chapitre/${chapitreId}/delete-fichier`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type_fichier: typeFichier, index: index })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    const container = btn.closest('.file-container');
+                    container.style.transition = 'opacity 0.3s';
+                    container.style.opacity = '0';
+                    setTimeout(() => container.remove(), 300);
+                } else {
+                    alert('Erreur : ' + (data.message || 'Impossible de supprimer le fichier.'));
+                    btn.disabled = false;
+                    btn.textContent = '🗑️';
+                }
+            } catch (e) {
+                alert('Erreur réseau. Veuillez réessayer.');
+                btn.disabled = false;
+                btn.textContent = '🗑️';
+            }
+        }
+    </script>
+</body>
+</html>

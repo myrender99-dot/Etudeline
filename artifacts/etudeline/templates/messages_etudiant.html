@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Messages - Étude LINE</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Étude LINE">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-180.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Désactiver sélection accidentelle sur l'interface */
+        button, .navbar, .navbar *, .btn-back,
+        .navbar-left, .message-header, h1, h2, h3,
+        .filter-section, .filter-section *,
+        .message-meta, .message-meta * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Garder la sélection pour le contenu des messages */
+        .message-body, .message-content, 
+        .message-text, textarea, input,
+        p, .content {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            overflow-x: hidden;
+            overflow-y: scroll;
+            scrollbar-gutter: stable;
+            width: 100%;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f6fa 0%, #e8eaf6 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .btn-back {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .navbar h1 {
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .btn-logout {
+            color: white;
+            text-decoration: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .user-name {
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+        
+        .message-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .message-nouveau {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .message-lu {
+            border-left: 4px solid #10b981;
+        }
+        
+        @media screen and (min-width: 600px) {
+            .navbar h1 {
+                font-size: 1.4rem;
+            }
+            
+            .user-name {
+                display: inline;
+            }
+            
+            .container {
+                padding: 0 1.5rem;
+            }
+            
+            .card {
+                padding: 2rem;
+            }
+        }
+        
+        @media screen and (max-width: 360px) {
+            .navbar h1 {
+                font-size: 1rem;
+            }
+            
+            .btn-logout {
+                font-size: 0.8rem;
+                padding: 0.35rem 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="/dashboard/etudiant" class="btn-back" title="Retour au tableau de bord">←</a>
+            <h1>✉️ Mes Messages</h1>
+        </div>
+        <div class="navbar-right">
+            <span class="user-name">👨‍🎓 {{ user_data.nom if user_data.nom else 'Étudiant' }}</span>
+            <a href="/logout" class="btn-logout">Déconnexion</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <!-- Liste des messages -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0; color: #059669; font-size: 1.3rem;">📬 Messages des professeurs</h3>
+                <button onclick="loadMessages()" 
+                        style="background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;"
+                        onmouseover="this.style.background='#2563eb'"
+                        onmouseout="this.style.background='#3b82f6'">
+                    🔄 Actualiser
+                </button>
+            </div>
+            
+            <div id="messages-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Messages will be loaded here -->
+                <p style="text-align: center; color: #9ca3af; padding: 2rem;">⏳ Chargement des messages...</p>
+            </div>
+            
+            <div id="messages-empty" style="text-align: center; padding: 2rem; color: #6b7280; display: none;">
+                <p style="font-size: 1.1rem;">📭 Aucun message pour le moment</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/sw-register.js"></script>
+    <script>
+        let currentMessages = [];
+        
+        // Charger les messages au démarrage
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMessages();
+        });
+        
+        async function loadMessages() {
+            try {
+                const response = await fetch('/api/etudiant/messages');
+                const data = await response.json();
+                currentMessages = data.messages || [];
+                
+                displayMessages();
+                
+                // Marquer les messages comme lus automatiquement
+                markMessagesAsRead();
+            } catch (error) {
+                console.error('Erreur chargement messages:', error);
+                document.getElementById('messages-list').innerHTML = '<p style="text-align: center; color: #ef4444;">❌ Erreur lors du chargement des messages</p>';
+            }
+        }
+        
+        function displayMessages() {
+            const messagesList = document.getElementById('messages-list');
+            const messagesEmpty = document.getElementById('messages-empty');
+            
+            if (currentMessages.length === 0) {
+                messagesList.style.display = 'none';
+                messagesEmpty.style.display = 'block';
+                return;
+            }
+            
+            messagesList.style.display = 'flex';
+            messagesEmpty.style.display = 'none';
+            
+            messagesList.innerHTML = currentMessages.map(msg => {
+                // Déterminer si c'est un message vocal ou texte
+                // Vérifier si audio_file existe et n'est pas vide/null
+                const isVoiceMessage = msg.audio_file && typeof msg.audio_file === 'string' && msg.audio_file.trim() !== '' && msg.audio_file !== 'null';
+                
+                let contentHtml;
+                if (isVoiceMessage) {
+                    // Message vocal : afficher SEULEMENT le lecteur audio compact (ignorer le contenu texte)
+                    contentHtml = `
+                        <div style="margin: 0.5rem 0 0 0;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; background: #f0fdf4; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1.5px solid #10b981;">
+                                <div style="font-size: 1.3rem; line-height: 1;">🎵</div>
+                                <div style="flex: 1;">
+                                    <audio controls style="width: 100%; height: 32px;" preload="metadata">
+                                        <source src="/audio/${msg.audio_file}" type="audio/webm">
+                                        <source src="/audio/${msg.audio_file}" type="audio/mp4">
+                                        <source src="/audio/${msg.audio_file}" type="audio/ogg">
+                                        Votre navigateur ne supporte pas la lecture audio.
+                                    </audio>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Message texte normal
+                    // Échapper le HTML pour éviter les injections
+                    const safeContent = (msg.contenu || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const displayContent = safeContent || '<em style="color: #9ca3af;">Aucun contenu</em>';
+                    contentHtml = `<p style="margin: 0.5rem 0 0 0; color: #1f2937; line-height: 1.5; white-space: pre-wrap;">${displayContent}</p>`;
+                }
+                
+                return `
+                    <div class="message-item ${msg.lu ? 'message-lu' : 'message-nouveau'}">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1; margin-right: 1rem;">
+                                <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">
+                                    <strong style="color: #059669;">👨‍🏫 ${msg.prof_nom || 'Professeur'}</strong>
+                                    <span style="margin-left: 1rem;">📅 ${new Date(msg.date_envoi).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'})}</span>
+                                    ${!msg.lu ? '<span style="margin-left: 1rem; background: #fbbf24; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">✉️ NOUVEAU</span>' : ''}
+                                </div>
+                                ${contentHtml}
+                            </div>
+                            <button onclick="deleteMessage('${msg.id}')" 
+                                    style="background: #ef4444; color: white; border: none; padding: 0.3rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: all 0.3s ease;"
+                                    onmouseover="this.style.background='#dc2626'"
+                                    onmouseout="this.style.background='#ef4444'"
+                                    title="Supprimer ce message">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function markMessagesAsRead() {
+            try {
+                const unreadIds = currentMessages.filter(m => !m.lu).map(m => m.id);
+                if (unreadIds.length === 0) return;
+                
+                await fetch('/api/etudiant/messages/mark-read', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message_ids: unreadIds})
+                });
+                
+                // Mettre à jour l'état local
+                currentMessages = currentMessages.map(m => ({...m, lu: true}));
+                
+                // Re-render pour mettre à jour les badges
+                displayMessages();
+            } catch (error) {
+                console.error('Erreur marquage messages lus:', error);
+            }
+        }
+        
+        async function deleteMessage(messageId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/etudiant/messages/${messageId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Retirer le message de la liste locale
+                    currentMessages = currentMessages.filter(m => m.id !== messageId);
+                    displayMessages();
+                } else {
+                    const error = await response.json();
+                    alert('Erreur lors de la suppression: ' + (error.detail || 'Erreur inconnue'));
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la suppression du message');
+            }
+        }
+    </script>
+</body>
+</html>

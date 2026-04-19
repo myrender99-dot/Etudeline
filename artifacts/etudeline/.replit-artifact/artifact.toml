@@ -1,0 +1,13 @@
+kind = "web"
+previewPath = "/"
+title = "ETUDELINE"
+version = "1.0.0"
+id = "etudeline-app"
+
+[[services]]
+localPort = 5000
+name = "ETUDELINE App"
+paths = ["/"]
+
+[services.development]
+run = "cd /home/runner/workspace/artifacts/etudeline && python3 -m uvicorn main:app --host 0.0.0.0 --port 5000"

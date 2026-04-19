@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Documents - Étude LINE</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Étude LINE">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icons/icon-180.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { overflow-x: hidden; overflow-y: scroll; scrollbar-gutter: stable; }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #f5f6fa 0%, #e8eaf6 100%); min-height: 100vh; }
+
+        /* ── Navbar ── */
+        .navbar {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white; padding: 0.75rem 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 12px rgba(99,102,241,0.35);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .navbar-left { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-back {
+            background: rgba(255,255,255,0.2); color: white; text-decoration: none;
+            padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 1.2rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: background 0.2s; border: none; cursor: pointer;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.3); }
+        .navbar h1 { font-size: 1.1rem; font-weight: 700; }
+        .navbar-right { display: flex; align-items: center; gap: 0.75rem; }
+        .user-name { font-size: 0.85rem; display: none; }
+        @media(min-width:600px) { .navbar h1 { font-size: 1.3rem; } .user-name { display: inline; } }
+        .btn-logout {
+            color: white; text-decoration: none; padding: 0.4rem 0.75rem;
+            border-radius: 6px; font-size: 0.85rem; background: rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.2); }
+
+        /* ── Container ── */
+        .container { max-width: 1100px; margin: 1.25rem auto; padding: 0 1rem; }
+
+        /* ── Info bar ── */
+        .info-bar {
+            background: white; border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 0.9rem 1.25rem;
+            display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+        .info-chip {
+            background: #eef2ff; color: #4f46e5; padding: 0.3rem 0.9rem;
+            border-radius: 20px; font-size: 0.83rem; font-weight: 600;
+        }
+        .btn-add-main {
+            margin-left: auto; background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px;
+            font-weight: 700; font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;
+        }
+        .btn-add-main:hover { opacity: 0.9; }
+
+        /* ── État vide / chargement ── */
+        .state-block { text-align: center; padding: 3.5rem 1rem; }
+        .state-block .state-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+        .state-block p { color: #94a3b8; font-size: 0.95rem; }
+
+        /* ── Étagère hiérarchique ── */
+        .shelf-group { background: white; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.07); margin-bottom: 1rem; overflow: hidden; }
+
+        .shelf-filiere-header {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white; padding: 1rem 1.25rem;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; user-select: none; font-weight: 700; font-size: 1rem;
+        }
+        .shelf-filiere-header:hover { opacity: 0.95; }
+
+        .shelf-filiere-body { padding: 0.75rem 1rem 1rem; }
+
+        .shelf-niveau { margin-bottom: 0.75rem; border: 1.5px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .shelf-niveau-header {
+            background: #f8fafc; padding: 0.7rem 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; user-select: none; font-weight: 600; color: #1e293b; font-size: 0.9rem;
+        }
+        .shelf-niveau-header:hover { background: #f1f5f9; }
+        .shelf-niveau-body { padding: 0.5rem 0.75rem 0.75rem; }
+
+        .shelf-semestre { margin-bottom: 0.6rem; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        .shelf-semestre-header {
+            background: #fafbff; padding: 0.6rem 0.9rem;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; user-select: none; font-weight: 600; color: #374151; font-size: 0.85rem;
+        }
+        .shelf-semestre-header:hover { background: #f0f4ff; }
+        .shelf-semestre-body { padding: 0.5rem 0.6rem 0.6rem; }
+
+        .shelf-matiere { margin-bottom: 0.5rem; border: 1px solid #e8ecf0; border-radius: 8px; overflow: hidden; }
+        .shelf-matiere-header {
+            background: #fff; padding: 0.55rem 0.85rem;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; user-select: none; font-weight: 600; color: #475569; font-size: 0.82rem;
+        }
+        .shelf-matiere-header:hover { background: #f8fafc; }
+        .shelf-matiere-body { padding: 0.5rem 0.6rem 0.6rem; }
+
+        .accordion-arrow { transition: transform 0.25s; display: inline-block; }
+        .collapsed .accordion-arrow { transform: rotate(-90deg); }
+
+        /* ── Type section ── */
+        .type-section { margin-bottom: 0.75rem; }
+        .type-header {
+            display: flex; align-items: center; gap: 0.5rem;
+            font-size: 0.78rem; font-weight: 700; color: #64748b;
+            padding: 0.25rem 0.1rem 0.5rem;
+            border-bottom: 1px solid #f1f5f9; margin-bottom: 0.5rem;
+        }
+        .count-badge {
+            background: #eef2ff; color: #6366f1; font-size: 0.7rem; font-weight: 700;
+            padding: 0.1rem 0.45rem; border-radius: 20px;
+        }
+
+        /* ── Grille de cartes ── */
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+        @media(min-width:600px) { .docs-grid { grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); } }
+
+        .doc-card {
+            border: 1.5px solid #e2e8f0; border-radius: 10px;
+            overflow: hidden; background: white;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .doc-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+        .doc-icon-wrap {
+            padding: 1.1rem; text-align: center;
+            border-bottom: 1px solid #f1f5f9; cursor: pointer;
+        }
+        .doc-icon { font-size: 2.2rem; }
+        .doc-preview-hint { margin-top: 0.35rem; font-size: 0.68rem; font-weight: 600; }
+
+        .doc-info { padding: 0.65rem 0.7rem 0.4rem; }
+        .doc-name { font-weight: 700; color: #1e293b; font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .doc-desc { color: #64748b; font-size: 0.7rem; margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .doc-meta { color: #94a3b8; font-size: 0.68rem; margin-top: 0.25rem; }
+
+        .doc-actions {
+            padding: 0.3rem 0.6rem 0.6rem;
+            display: flex; gap: 0.3rem;
+        }
+        .btn-act {
+            flex: 1; border: none; padding: 0.35rem 0;
+            border-radius: 6px; font-size: 0.78rem;
+            cursor: pointer; font-weight: 700;
+            text-align: center; text-decoration: none;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-view { background: #6366f1; color: white; }
+        .btn-dl   { background: #10b981; color: white; }
+        .btn-edit { background: #0ea5e9; color: white; }
+        .btn-del  { background: #ef4444; color: white; }
+
+        /* ── Modals ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55); z-index: 9999;
+            align-items: center; justify-content: center; padding: 1rem;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: white; border-radius: 16px;
+            width: 100%; max-width: 560px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            max-height: 92vh; overflow-y: auto;
+        }
+        .modal-header {
+            padding: 1.1rem 1.4rem;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 2;
+        }
+        .modal-header h3 { color: white; font-size: 1rem; margin: 0; }
+        .modal-close { background: none; border: none; color: white; font-size: 1.6rem; cursor: pointer; line-height: 1; }
+        .modal-body { padding: 1.4rem; }
+
+        .form-group { margin-bottom: 0.9rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.35rem; color: #374151; font-size: 0.86rem; }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 0.65rem 0.9rem;
+            border: 1.5px solid #e2e8f0; border-radius: 8px;
+            font-size: 0.88rem; outline: none; font-family: inherit; background: white;
+            transition: border-color 0.15s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus { border-color: #6366f1; }
+        .form-group textarea { resize: vertical; }
+        .form-group input:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+
+        /* ── Upload entries ── */
+        .upload-entry {
+            border: 1.5px solid #e2e8f0; border-radius: 10px;
+            padding: 0.9rem; margin-bottom: 0.75rem; background: #fafbff;
+        }
+        .entry-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.65rem;
+        }
+        .entry-num { font-size: 0.82rem; font-weight: 700; color: #6366f1; }
+        .btn-remove-entry {
+            background: #fee2e2; color: #ef4444; border: none;
+            padding: 0.2rem 0.5rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+        }
+        .btn-add-entry {
+            width: 100%; border: 2px dashed #c7d2fe; background: #eef2ff;
+            color: #6366f1; font-size: 0.88rem; font-weight: 700;
+            padding: 0.6rem; border-radius: 8px; cursor: pointer; margin-bottom: 0.9rem;
+            transition: all 0.15s;
+        }
+        .btn-add-entry:hover { background: #e0e7ff; border-color: #6366f1; }
+
+        /* Drop zone */
+        .drop-zone {
+            border: 2px dashed #cbd5e1; border-radius: 8px;
+            padding: 1.1rem; text-align: center; cursor: pointer;
+            transition: all 0.2s; background: #f8fafc; margin-top: 0.5rem;
+        }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #6366f1; background: #eef2ff; }
+        .dz-icon { font-size: 1.6rem; }
+        .drop-zone p { margin: 0.3rem 0 0; color: #64748b; font-size: 0.82rem; }
+        .dz-selected { color: #4f46e5; font-weight: 700; font-size: 0.86rem; }
+
+        /* Progress */
+        .progress-bar-wrap { background: #e2e8f0; border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 0.5rem; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #6366f1, #4f46e5); width: 0%; transition: width 0.3s; }
+        .progress-status { font-size: 0.82rem; color: #6366f1; text-align: center; }
+
+        .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.1rem; }
+        .btn-cancel { padding: 0.6rem 1.1rem; border: 1.5px solid #e2e8f0; background: white; border-radius: 8px; font-size: 0.88rem; cursor: pointer; color: #64748b; }
+        .btn-primary { padding: 0.6rem 1.3rem; background: #6366f1; color: white; border: none; border-radius: 8px; font-size: 0.88rem; cursor: pointer; font-weight: 700; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ── Visionneuse ── */
+        .viewer-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.92); z-index: 10000; flex-direction: column;
+        }
+        .viewer-overlay.open { display: flex; }
+        .viewer-toolbar {
+            background: #1e293b; padding: 0.7rem 1.1rem;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .viewer-toolbar .vt-title { color: white; font-weight: 700; font-size: 0.9rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .viewer-toolbar .vt-actions { display: flex; gap: 0.5rem; flex-shrink: 0; margin-left: 0.75rem; }
+        .viewer-toolbar button { border: none; padding: 0.4rem 0.8rem; border-radius: 7px; font-size: 0.8rem; cursor: pointer; font-weight: 700; }
+        .viewer-body { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+
+        /* ── Toast ── */
+        #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 20000; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="/dashboard/etudiant" class="btn-back" title="Retour au tableau de bord">←</a>
+        <h1>📁 Mes Documents</h1>
+    </div>
+    <div class="navbar-right">
+        <span class="user-name">👨‍🎓 {{ student.prenom if student.prenom else '' }} {{ student.nom if student.nom else '' }}</span>
+        <a href="/logout" class="btn-logout">Déconnexion</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- Barre d'info + bouton ajouter -->
+    <div class="info-bar">
+        <span class="info-chip">📚 {{ filiere_nom if filiere_nom else 'Ma Filière' }}</span>
+        <span class="info-chip">🎓 Niveau {{ student.niveau if student.niveau else '—' }}</span>
+        <button class="btn-add-main" onclick="openUploadModal()">➕ Ajouter des documents</button>
+    </div>
+
+    <!-- Zone de chargement -->
+    <div id="shelf-loading" class="state-block">
+        <div class="state-icon">⏳</div>
+        <p>Chargement de votre étagère...</p>
+    </div>
+
+    <!-- Étagère hiérarchique (remplie dynamiquement) -->
+    <div id="shelf-container" style="display:none;"></div>
+
+</div>
+
+
+<!-- ====== MODAL UPLOAD ====== -->
+<div class="modal-overlay" id="upload-modal">
+    <div class="modal-box">
+        <div class="modal-header" style="background:linear-gradient(135deg,#6366f1,#4f46e5);">
+            <h3>➕ Ajouter des documents</h3>
+            <button class="modal-close" onclick="closeUploadModal()">×</button>
+        </div>
+        <div class="modal-body">
+
+            <!-- Filière (lecture seule) -->
+            <div class="form-group">
+                <label>Filière</label>
+                <input type="text" value="{{ filiere_nom if filiere_nom else 'Ma Filière' }}" disabled>
+            </div>
+
+            <!-- Niveau + Semestre -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Niveau *</label>
+                    <select id="up-niveau" onchange="updateSemestresForm()">
+                        {% if niveaux %}
+                            {% for niv in niveaux %}
+                            <option value="{{ niv }}" {% if niv == student.niveau %}selected{% endif %}>{{ niv }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="L1" {% if student.niveau == 'L1' %}selected{% endif %}>L1</option>
+                            <option value="L2" {% if student.niveau == 'L2' %}selected{% endif %}>L2</option>
+                            <option value="L3" {% if student.niveau == 'L3' %}selected{% endif %}>L3</option>
+                            <option value="M1" {% if student.niveau == 'M1' %}selected{% endif %}>M1</option>
+                            <option value="M2" {% if student.niveau == 'M2' %}selected{% endif %}>M2</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Semestre</label>
+                    <select id="up-semestre" onchange="updateMatieresForm()">
+                        <option value="">-- Tous --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Matière -->
+            <div class="form-group">
+                <label>Matière</label>
+                <select id="up-matiere">
+                    <option value="">-- Aucune matière --</option>
+                </select>
+            </div>
+
+            <hr style="border:none;border-top:1px solid #e2e8f0;margin:0.75rem 0;">
+
+            <!-- Entrées de fichiers -->
+            <div id="upload-entries"></div>
+
+            <!-- Bouton + -->
+            <button class="btn-add-entry" onclick="addUploadEntry()">➕ Ajouter un autre fichier</button>
+
+            <!-- Progress -->
+            <div id="upload-progress" style="display:none; margin-bottom:0.75rem;">
+                <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+                <p class="progress-status" id="progress-status"></p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeUploadModal()">Annuler</button>
+                <button type="button" class="btn-primary" id="upload-btn" onclick="submitAllUploads()">⬆️ Uploader</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ====== MODAL MODIFIER ====== -->
+<div class="modal-overlay" id="edit-modal">
+    <div class="modal-box">
+        <div class="modal-header" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">
+            <h3>✏️ Modifier le document</h3>
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-doc-id">
+            <div class="form-group">
+                <label>Titre du document *</label>
+                <input type="text" id="edit-nom">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="edit-type">
+                        <option value="">-- Choisir --</option>
+                        <option value="Cours">📖 Cours</option>
+                        <option value="Exercice">✏️ Exercice</option>
+                        <option value="Solution">✅ Solution</option>
+                        <option value="Examen">📋 Examen</option>
+                        <option value="Devoir">📝 Devoir</option>
+                        <option value="Rapport">📊 Rapport</option>
+                        <option value="Autre">📦 Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Matière</label>
+                    <select id="edit-matiere">
+                        <option value="">-- Aucune --</option>
+                        {% for mat in matieres %}
+                        <option value="{{ mat.id }}">{{ mat.nom }} ({{ mat.niveau }} · {{ mat.semestre }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Niveau</label>
+                    <select id="edit-niveau">
+                        <option value="">-- Inchangé --</option>
+                        {% for niv in niveaux %}
+                        <option value="{{ niv }}">{{ niv }}</option>
+                        {% endfor %}
+                        {% if not niveaux %}
+                        <option value="L1">L1</option>
+                        <option value="L2">L2</option>
+                        <option value="L3">L3</option>
+                        <option value="M1">M1</option>
+                        <option value="M2">M2</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Semestre</label>
+                    <select id="edit-semestre">
+                        <option value="">-- Inchangé --</option>
+                        {% for sem in semestres %}
+                        <option value="{{ sem }}">{{ sem }}</option>
+                        {% endfor %}
+                        {% if not semestres %}
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                        <option value="S3">S3</option>
+                        <option value="S4">S4</option>
+                        <option value="S5">S5</option>
+                        <option value="S6">S6</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="edit-description" rows="2" placeholder="Courte description..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">Annuler</button>
+                <button type="button" class="btn-primary" onclick="submitEdit()">💾 Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ====== VISIONNEUSE PLEIN ÉCRAN ====== -->
+<div class="viewer-overlay" id="viewer-overlay">
+    <div class="viewer-toolbar">
+        <span class="vt-title" id="viewer-title"></span>
+        <div class="vt-actions">
+            <button id="viewer-dl-btn" style="background:#6366f1;color:white;">⬇️ Télécharger</button>
+            <button onclick="closeViewer()" style="background:#ef4444;color:white;">✕ Fermer</button>
+        </div>
+    </div>
+    <div class="viewer-body" id="viewer-body"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+
+<script>
+// ── Données du serveur ────────────────────────────────────────────────
+const MATIERES_DATA = {{ matieres_data | tojson }};
+const STUDENT_NIVEAU = "{{ student.niveau | default('') }}";
+const STUDENT_FILIERE_ID = "{{ student.filiere_id | default('') }}";
+
+// ── Constantes visuelles ─────────────────────────────────────────────
+const TYPE_ICONS = {
+    'Cours': '📖', 'Exercice': '✏️', 'Solution': '✅', 'Examen': '📋',
+    'Devoir': '📝', 'Rapport': '📊', 'Autre': '📦'
+};
+const TYPE_COLORS = {
+    'Cours': '#6366f1', 'Exercice': '#f59e0b', 'Solution': '#10b981',
+    'Examen': '#ef4444', 'Devoir': '#8b5cf6', 'Rapport': '#3b82f6', 'Autre': '#64748b'
+};
+const FILE_ICONS = {
+    '.pdf': '📄', '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️',
+    '.gif': '🖼️', '.webp': '🖼️', '.doc': '📝', '.docx': '📝',
+    '.ppt': '📊', '.pptx': '📊', '.xls': '📈', '.xlsx': '📈',
+    '.txt': '📃', '.mp4': '🎬', '.mp3': '🎵'
+};
+const PREVIEW_EXTS = ['.pdf','.png','.jpg','.jpeg','.gif','.webp','.mp4','.mp3','.txt'];
+const IMAGE_EXTS   = ['.png','.jpg','.jpeg','.gif','.webp'];
+
+// ── État global ───────────────────────────────────────────────────────
+let allDocs = [];
+let entryIdx = 0;
+
+// ── Démarrage ────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    initUploadEntries();
+    updateSemestresForm();
+    loadDocuments();
+});
+
+// ── Utilitaires ──────────────────────────────────────────────────────
+function escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return escHtml(s); }
+function escJs(s) {
+    if (!s) return '';
+    return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
+}
+function fmtSize(b) {
+    if (!b) return '';
+    if (b < 1024) return b + ' o';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' Ko';
+    return (b/1048576).toFixed(1) + ' Mo';
+}
+function fmtDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+function toast(msg, type='info') {
+    const colors = {success:'#22c55e', error:'#ef4444', info:'#6366f1'};
+    const el = document.createElement('div');
+    el.style.cssText = `background:${colors[type]||'#333'};color:white;padding:0.7rem 1.2rem;border-radius:8px;margin-top:8px;font-size:0.86rem;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:280px;`;
+    el.textContent = msg;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 3800);
+}
+
+// ── Chargement de l'étagère ──────────────────────────────────────────
+async function loadDocuments() {
+    document.getElementById('shelf-loading').style.display = 'block';
+    document.getElementById('shelf-container').style.display = 'none';
+    try {
+        const res = await fetch('/api/etudiant/documents');
+        const data = await res.json();
+        allDocs = data.documents || [];
+        renderShelf();
+    } catch(e) {
+        document.getElementById('shelf-loading').innerHTML = '<div class="state-icon">❌</div><p>Erreur de chargement. Rechargez la page.</p>';
+    }
+}
+
+// ── Rendu hiérarchique ───────────────────────────────────────────────
+function renderShelf() {
+    document.getElementById('shelf-loading').style.display = 'none';
+    const container = document.getElementById('shelf-container');
+    container.style.display = 'block';
+
+    if (allDocs.length === 0) {
+        container.innerHTML = `<div class="state-block">
+            <div class="state-icon">📂</div>
+            <p>Votre étagère est vide.<br>Ajoutez votre premier document !</p>
+            <button onclick="openUploadModal()" class="btn-primary" style="margin-top:1.25rem; padding:0.75rem 1.5rem; font-size:0.95rem;">➕ Ajouter des documents</button>
+        </div>`;
+        return;
+    }
+
+    // Groupement : filière → niveau → semestre → matière → type
+    const grouped = {};
+    for (const doc of allDocs) {
+        const fil = escHtml(doc.filiere_nom || 'Ma Filière');
+        const niv = doc.niveau || 'Sans niveau';
+        const sem = doc.semestre || 'Sans semestre';
+        const mat = doc.matiere_nom || 'Sans matière';
+        const typ = doc.type_document || 'Autre';
+
+        if (!grouped[fil]) grouped[fil] = {};
+        if (!grouped[fil][niv]) grouped[fil][niv] = {};
+        if (!grouped[fil][niv][sem]) grouped[fil][niv][sem] = {};
+        if (!grouped[fil][niv][sem][mat]) grouped[fil][niv][sem][mat] = {};
+        if (!grouped[fil][niv][sem][mat][typ]) grouped[fil][niv][sem][mat][typ] = [];
+        grouped[fil][niv][sem][mat][typ].push(doc);
+    }
+
+    let html = '';
+    for (const [filiere, niveaux] of Object.entries(grouped)) {
+        const totalFil = Object.values(niveaux).flatMap(n => Object.values(n).flatMap(s => Object.values(s).flatMap(m => Object.values(m).flat()))).length;
+        html += `
+        <div class="shelf-group">
+            <div class="shelf-filiere-header" onclick="toggleSection(this, 'fil-body-${sanitizeId(filiere)}')">
+                <span>📚 ${filiere} <span style="font-size:0.8rem;opacity:0.8;">(${totalFil} document${totalFil>1?'s':''})</span></span>
+                <span class="accordion-arrow">▾</span>
+            </div>
+            <div class="shelf-filiere-body" id="fil-body-${sanitizeId(filiere)}">`;
+
+        const niveauxSorted = Object.entries(niveaux).sort(([a],[b]) => a.localeCompare(b));
+        for (const [niveau, semestres] of niveauxSorted) {
+            const totalNiv = Object.values(semestres).flatMap(s => Object.values(s).flat().flat()).length;
+            const nivId = sanitizeId(filiere + niveau);
+            html += `
+            <div class="shelf-niveau">
+                <div class="shelf-niveau-header" onclick="toggleSection(this, 'niv-body-${nivId}')">
+                    <span>🎓 ${escHtml(niveau)} <span style="font-size:0.76rem;color:#94a3b8;">(${totalNiv} doc${totalNiv>1?'s':''})</span></span>
+                    <span class="accordion-arrow">▾</span>
+                </div>
+                <div class="shelf-niveau-body" id="niv-body-${nivId}">`;
+
+            const semestresSorted = Object.entries(semestres).sort(([a],[b]) => a.localeCompare(b));
+            for (const [semestre, matieres] of semestresSorted) {
+                const totalSem = Object.values(matieres).flat().flat().length;
+                const semId = sanitizeId(filiere + niveau + semestre);
+                html += `
+                <div class="shelf-semestre">
+                    <div class="shelf-semestre-header" onclick="toggleSection(this, 'sem-body-${semId}')">
+                        <span>📅 ${escHtml(semestre)} <span style="font-size:0.74rem;color:#94a3b8;">(${totalSem} doc${totalSem>1?'s':''})</span></span>
+                        <span class="accordion-arrow">▾</span>
+                    </div>
+                    <div class="shelf-semestre-body" id="sem-body-${semId}">`;
+
+                const matieresSorted = Object.entries(matieres).sort(([a],[b]) => a.localeCompare(b));
+                for (const [matiere, types] of matieresSorted) {
+                    const totalMat = Object.values(types).flat().length;
+                    const matId = sanitizeId(filiere + niveau + semestre + matiere);
+                    html += `
+                    <div class="shelf-matiere">
+                        <div class="shelf-matiere-header" onclick="toggleSection(this, 'mat-body-${matId}')">
+                            <span>📖 ${escHtml(matiere)} <span style="font-size:0.72rem;color:#94a3b8;">(${totalMat} doc${totalMat>1?'s':''})</span></span>
+                            <span class="accordion-arrow">▾</span>
+                        </div>
+                        <div class="shelf-matiere-body" id="mat-body-${matId}">`;
+
+                    const typeOrder = ['Cours','Exercice','Solution','Examen','Devoir','Rapport','Autre'];
+                    const typesSorted = Object.entries(types).sort(([a],[b]) => {
+                        const ia = typeOrder.indexOf(a), ib = typeOrder.indexOf(b);
+                        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+                    });
+
+                    for (const [type, docs] of typesSorted) {
+                        const typeIcon = TYPE_ICONS[type] || '📦';
+                        const typeColor = TYPE_COLORS[type] || '#64748b';
+                        html += `
+                        <div class="type-section">
+                            <div class="type-header">
+                                <span>${typeIcon} ${escHtml(type)}</span>
+                                <span class="count-badge">${docs.length}</span>
+                            </div>
+                            <div class="docs-grid">
+                                ${docs.map(d => renderDocCard(d, typeColor)).join('')}
+                            </div>
+                        </div>`;
+                    }
+
+                    html += `</div></div>`;
+                }
+                html += `</div></div>`;
+            }
+            html += `</div></div>`;
+        }
+        html += `</div></div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+// ── Carte de document ────────────────────────────────────────────────
+function renderDocCard(doc, typeColor) {
+    const ext       = doc.extension || '';
+    const icon      = FILE_ICONS[ext] || '📦';
+    const color     = typeColor || TYPE_COLORS[doc.type_document] || '#64748b';
+    const canPreview = PREVIEW_EXTS.includes(ext);
+    const descHtml  = doc.description
+        ? `<div class="doc-desc" title="${escAttr(doc.description)}">${escHtml(doc.description)}</div>` : '';
+
+    const lecteurUrl = `/etudiant/document/${doc.id}/lecteur`;
+    return `<div class="doc-card">
+        <div class="doc-icon-wrap" style="background:${color}15; cursor:pointer;" onclick="window.location.href='${lecteurUrl}'">
+            <div class="doc-icon">${icon}</div>
+            <div class="doc-preview-hint" style="color:${color};">👁 Ouvrir</div>
+        </div>
+        <div class="doc-info">
+            <div class="doc-name" title="${escAttr(doc.nom_affichage)}">${escHtml(doc.nom_affichage)}</div>
+            ${descHtml}
+            <div class="doc-meta">${fmtDate(doc.created_at)}${doc.taille ? ' · ' + fmtSize(doc.taille) : ''}</div>
+        </div>
+        <div class="doc-actions">
+            <a class="btn-act btn-view" href="${lecteurUrl}" title="Ouvrir dans le lecteur">👁</a>
+            <a class="btn-act btn-dl" href="/etudiant/document/${doc.id}/download" title="Télécharger">⬇</a>
+            <button class="btn-act btn-edit" onclick="openEditModal(${doc.id},'${escJs(doc.nom_affichage)}','${escJs(doc.type_document||'')}','${escJs(doc.description||'')}','${escJs(doc.matiere_id||'')}','${escJs(doc.niveau||'')}','${escJs(doc.semestre||'')}')" title="Modifier">✏</button>
+            <button class="btn-act btn-del" onclick="deleteDoc(${doc.id},'${escJs(doc.nom_affichage)}')" title="Supprimer">🗑</button>
+        </div>
+    </div>`;
+}
+
+// ── Accordéons ───────────────────────────────────────────────────────
+function toggleSection(header, bodyId) {
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : '';
+    header.classList.toggle('collapsed', isOpen);
+}
+
+function sanitizeId(str) {
+    return str.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50);
+}
+
+// ── Upload : initialisation ───────────────────────────────────────────
+function initUploadEntries() {
+    entryIdx = 0;
+    document.getElementById('upload-entries').innerHTML = buildEntryHTML(0, false);
+    entryIdx = 1;
+}
+
+function buildEntryHTML(idx, removable) {
+    return `<div class="upload-entry" id="entry-${idx}">
+        <div class="entry-header">
+            <span class="entry-num">Document ${idx + 1}</span>
+            ${removable ? `<button class="btn-remove-entry" onclick="removeEntry('entry-${idx}')">🗑 Retirer</button>` : ''}
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Type *</label>
+                <select class="entry-type">
+                    <option value="Cours">📖 Cours</option>
+                    <option value="Exercice">✏️ Exercice</option>
+                    <option value="Solution">✅ Solution</option>
+                    <option value="Examen">📋 Examen</option>
+                    <option value="Devoir">📝 Devoir</option>
+                    <option value="Rapport">📊 Rapport</option>
+                    <option value="Autre">📦 Autre</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Titre *</label>
+                <input type="text" class="entry-titre" placeholder="Ex: Cours chapitre 1...">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Description (optionnel)</label>
+            <textarea class="entry-desc" rows="1" placeholder="Courte description..."></textarea>
+        </div>
+        <div class="drop-zone" id="dz-${idx}"
+             onclick="document.getElementById('file-${idx}').click()"
+             ondragover="event.preventDefault(); this.classList.add('dragover');"
+             ondragleave="this.classList.remove('dragover');"
+             ondrop="handleEntryDrop(event, ${idx})">
+            <div id="dz-hint-${idx}">
+                <div class="dz-icon">📎</div>
+                <p>Glissez ou cliquez pour choisir un fichier<br><span style="font-size:0.75rem;color:#94a3b8;">PDF, Word, Excel, image, vidéo — max 50 Mo</span></p>
+            </div>
+            <div class="dz-selected" id="dz-sel-${idx}" style="display:none;"></div>
+        </div>
+        <input type="file" id="file-${idx}" style="display:none;"
+               accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.mp4,.mp3"
+               onchange="handleEntryFileChange(this, ${idx})">
+    </div>`;
+}
+
+function addUploadEntry() {
+    const container = document.getElementById('upload-entries');
+    const div = document.createElement('div');
+    div.innerHTML = buildEntryHTML(entryIdx, true);
+    container.appendChild(div.firstElementChild);
+    entryIdx++;
+}
+
+function removeEntry(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+
+function handleEntryFileChange(input, idx) {
+    if (input.files && input.files[0]) {
+        const f = input.files[0];
+        document.getElementById('dz-hint-' + idx).style.display = 'none';
+        const sel = document.getElementById('dz-sel-' + idx);
+        sel.style.display = 'block';
+        sel.innerHTML = `📎 <strong>${escHtml(f.name)}</strong> (${fmtSize(f.size)})`;
+        document.getElementById('dz-' + idx).classList.remove('dragover');
+    }
+}
+
+function handleEntryDrop(event, idx) {
+    event.preventDefault();
+    document.getElementById('dz-' + idx).classList.remove('dragover');
+    const files = event.dataTransfer.files;
+    if (files && files.length > 0) {
+        const input = document.getElementById('file-' + idx);
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        input.files = dt.files;
+        handleEntryFileChange(input, idx);
+    }
+}
+
+// ── Sélecteurs en cascade ─────────────────────────────────────────────
+function updateSemestresForm() {
+    const niveau = document.getElementById('up-niveau').value;
+    const semestresSet = new Set();
+    MATIERES_DATA.forEach(m => {
+        if (!niveau || m.niveau === niveau) {
+            if (m.semestre) semestresSet.add(m.semestre);
+        }
+    });
+    const semestres = Array.from(semestresSet).sort();
+    const sel = document.getElementById('up-semestre');
+    sel.innerHTML = '<option value="">-- Tous --</option>';
+    semestres.forEach(s => { sel.innerHTML += `<option value="${escHtml(s)}">${escHtml(s)}</option>`; });
+    updateMatieresForm();
+}
+
+function updateMatieresForm() {
+    const niveau = document.getElementById('up-niveau').value;
+    const semestre = document.getElementById('up-semestre').value;
+    const filtered = MATIERES_DATA.filter(m =>
+        (!niveau || m.niveau === niveau) && (!semestre || m.semestre === semestre)
+    );
+    const sel = document.getElementById('up-matiere');
+    sel.innerHTML = '<option value="">-- Aucune matière --</option>';
+    filtered.forEach(m => {
+        sel.innerHTML += `<option value="${escHtml(m.id)}">${escHtml(m.nom)}</option>`;
+    });
+}
+
+// ── Soumission multi-upload ───────────────────────────────────────────
+async function submitAllUploads() {
+    const niveau   = document.getElementById('up-niveau').value;
+    const semestre = document.getElementById('up-semestre').value;
+    const matiereId = document.getElementById('up-matiere').value;
+
+    const entries = document.querySelectorAll('#upload-entries .upload-entry');
+    const toUpload = [];
+
+    for (const entry of entries) {
+        const titre   = entry.querySelector('.entry-titre').value.trim();
+        const type    = entry.querySelector('.entry-type').value;
+        const desc    = entry.querySelector('.entry-desc').value.trim();
+        const fileInputId = entry.querySelector('input[type="file"]').id;
+        const fileInput = document.getElementById(fileInputId);
+        const fichier = fileInput && fileInput.files[0];
+
+        if (!titre) { toast('Veuillez renseigner un titre pour tous les documents.', 'error'); return; }
+        if (!fichier) { toast('Veuillez sélectionner un fichier pour chaque document.', 'error'); return; }
+        toUpload.push({ titre, type, desc, fichier });
+    }
+
+    if (toUpload.length === 0) { toast('Aucun document à uploader.', 'error'); return; }
+
+    const btn = document.getElementById('upload-btn');
+    btn.disabled = true;
+    document.getElementById('upload-progress').style.display = 'block';
+    document.getElementById('progress-bar').style.width = '0%';
+
+    let success = 0;
+    let errors  = 0;
+
+    for (let i = 0; i < toUpload.length; i++) {
+        const item = toUpload[i];
+        const pct  = Math.round((i / toUpload.length) * 90);
+        document.getElementById('progress-bar').style.width = pct + '%';
+        document.getElementById('progress-status').textContent = `Envoi ${i+1}/${toUpload.length} : ${item.titre}...`;
+        btn.textContent = `⏳ (${i+1}/${toUpload.length})`;
+
+        const fd = new FormData();
+        fd.append('nom_affichage', item.titre);
+        fd.append('type_document', item.type);
+        fd.append('description',   item.desc);
+        fd.append('matiere_id',    matiereId);
+        fd.append('niveau',        niveau);
+        fd.append('semestre',      semestre);
+        fd.append('fichier',       item.fichier);
+
+        try {
+            const res  = await fetch('/api/etudiant/upload-document', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) success++;
+            else { errors++; toast(`❌ "${item.titre}" : ${data.error || 'Erreur'}`, 'error'); }
+        } catch { errors++; toast(`❌ Erreur réseau pour "${item.titre}"`, 'error'); }
+    }
+
+    document.getElementById('progress-bar').style.width = '100%';
+
+    if (success > 0) {
+        document.getElementById('progress-status').textContent = `✅ ${success} document${success>1?'s':''} uploadé${success>1?'s':''}${errors>0?' ('+errors+' erreur'+( errors>1?'s':'')+')':''}`;
+        toast(`${success} document${success>1?'s':''} ajouté${success>1?'s':''}!`, 'success');
+        setTimeout(() => { closeUploadModal(); loadDocuments(); }, 900);
+    } else {
+        document.getElementById('progress-status').textContent = '❌ Aucun document uploadé.';
+        btn.disabled = false;
+        btn.textContent = '⬆️ Uploader';
+    }
+}
+
+// ── Modal Upload ─────────────────────────────────────────────────────
+function openUploadModal() {
+    initUploadEntries();
+    updateSemestresForm();
+    document.getElementById('upload-progress').style.display = 'none';
+    document.getElementById('progress-bar').style.width = '0%';
+    const btn = document.getElementById('upload-btn');
+    btn.disabled = false; btn.textContent = '⬆️ Uploader';
+    document.getElementById('upload-modal').classList.add('open');
+}
+function closeUploadModal() { document.getElementById('upload-modal').classList.remove('open'); }
+
+// ── Suppression ───────────────────────────────────────────────────────
+async function deleteDoc(docId, nom) {
+    if (!confirm(`Supprimer "${nom}" ?\n\nCette action est irréversible.`)) return;
+    try {
+        const res  = await fetch(`/api/etudiant/document/${docId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            allDocs = allDocs.filter(d => d.id !== docId);
+            renderShelf();
+            toast('Document supprimé.', 'success');
+        } else {
+            toast(data.error || 'Suppression impossible.', 'error');
+        }
+    } catch { toast('Erreur réseau.', 'error'); }
+}
+
+// ── Modification ──────────────────────────────────────────────────────
+function openEditModal(docId, nom, type, desc, matiereId, niveau, semestre) {
+    document.getElementById('edit-doc-id').value      = docId;
+    document.getElementById('edit-nom').value         = nom;
+    document.getElementById('edit-type').value        = type || '';
+    document.getElementById('edit-description').value = desc || '';
+    document.getElementById('edit-matiere').value     = matiereId || '';
+    document.getElementById('edit-niveau').value      = niveau || '';
+    document.getElementById('edit-semestre').value    = semestre || '';
+    document.getElementById('edit-modal').classList.add('open');
+}
+function closeEditModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+async function submitEdit() {
+    const docId = document.getElementById('edit-doc-id').value;
+    const nom   = document.getElementById('edit-nom').value.trim();
+    if (!nom) { toast('Le titre est obligatoire.', 'error'); return; }
+
+    try {
+        const res  = await fetch(`/api/etudiant/document/${docId}/rename`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nom_affichage: nom,
+                type_document: document.getElementById('edit-type').value || null,
+                description:   document.getElementById('edit-description').value || null,
+                matiere_id:    document.getElementById('edit-matiere').value || null,
+                niveau:        document.getElementById('edit-niveau').value || null,
+                semestre:      document.getElementById('edit-semestre').value || null,
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeEditModal();
+            toast('Document modifié.', 'success');
+            loadDocuments();
+        } else {
+            toast(data.error || 'Modification impossible.', 'error');
+        }
+    } catch { toast('Erreur réseau.', 'error'); }
+}
+
+// ── Visionneuse ───────────────────────────────────────────────────────
+function openViewer(docId, nom, ext) {
+    const overlay = document.getElementById('viewer-overlay');
+    const body    = document.getElementById('viewer-body');
+    document.getElementById('viewer-title').textContent = nom;
+    document.getElementById('viewer-dl-btn').onclick = () => { window.location.href = `/etudiant/document/${docId}/download`; };
+    overlay.classList.add('open');
+    body.innerHTML = '<p style="color:#94a3b8;">⏳ Chargement...</p>';
+
+    const url = `/etudiant/document/${docId}/view`;
+
+    if (ext === '.pdf') {
+        body.innerHTML = `<iframe src="${url}" style="width:100%;height:100%;min-height:80vh;border:none;border-radius:8px;" allowfullscreen></iframe>`;
+    } else if (IMAGE_EXTS.includes(ext)) {
+        body.innerHTML = `<img src="${url}" style="max-width:100%;max-height:85vh;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);" alt="${escAttr(nom)}">`;
+    } else if (ext === '.mp4') {
+        body.innerHTML = `<video controls autoplay style="max-width:100%;max-height:80vh;border-radius:10px;"><source src="${url}"></video>`;
+    } else if (ext === '.mp3') {
+        body.innerHTML = `<div style="text-align:center;padding:2rem;">
+            <div style="font-size:5rem;margin-bottom:1rem;">🎵</div>
+            <p style="color:white;font-size:1.1rem;margin-bottom:1rem;">${escHtml(nom)}</p>
+            <audio controls autoplay style="width:100%;max-width:500px;"><source src="${url}"></audio>
+        </div>`;
+    } else if (ext === '.txt') {
+        fetch(url).then(r => r.text()).then(txt => {
+            body.innerHTML = `<div style="background:white;border-radius:10px;padding:2rem;max-width:800px;width:100%;max-height:80vh;overflow:auto;white-space:pre-wrap;font-family:monospace;font-size:0.88rem;color:#1e293b;">${escHtml(txt)}</div>`;
+        }).catch(() => { body.innerHTML = '<p style="color:white;">❌ Impossible d\'afficher ce fichier.</p>'; });
+    } else {
+        body.innerHTML = `<div style="text-align:center;padding:2rem;">
+            <div style="font-size:5rem;margin-bottom:1rem;">📦</div>
+            <p style="color:white;margin-bottom:1.5rem;">Ce type de fichier ne peut pas être prévisualisé directement.</p>
+            <a href="/etudiant/document/${docId}/download" style="display:inline-block;background:#6366f1;color:white;padding:0.75rem 2rem;border-radius:10px;text-decoration:none;font-weight:700;">⬇️ Télécharger</a>
+        </div>`;
+    }
+}
+
+function closeViewer() {
+    document.getElementById('viewer-overlay').classList.remove('open');
+    document.getElementById('viewer-body').innerHTML = '';
+}
+
+// ── Raccourcis clavier ────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeViewer(); closeUploadModal(); closeEditModal(); }
+});
+
+// Fermer modals en cliquant à l'extérieur
+['upload-modal','edit-modal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('open');
+    });
+});
+</script>
+</body>
+</html>
