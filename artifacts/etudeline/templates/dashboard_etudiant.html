@@ -434,6 +434,131 @@
             }
         }
         
+        /* ── STREAK WIDGET ── */
+        .streak-widget {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 16px;
+            padding: 1.2rem 1.5rem;
+            margin: 1rem 0 1.2rem;
+            box-shadow: 0 6px 24px rgba(102, 126, 234, 0.25);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .streak-main {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .streak-flame-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .streak-flame {
+            font-size: 2.4rem;
+            line-height: 1;
+            filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.7));
+            animation: flamePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes flamePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .streak-count {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #FF8C00;
+            line-height: 1;
+        }
+
+        .streak-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .streak-divider {
+            width: 1px;
+            height: 52px;
+            background: rgba(255,255,255,0.15);
+            flex-shrink: 0;
+        }
+
+        .streak-objectif {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .streak-check {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .streak-obj-text {
+            color: white;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .streak-obj-text small {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.78rem;
+        }
+
+        .streak-total {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+
+        .streak-total-num {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #a78bfa;
+            line-height: 1;
+        }
+
+        .streak-total-label {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .streak-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.9rem;
+            padding-top: 0.9rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .streak-badge {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+        /* ── FIN STREAK WIDGET ── */
+
         .semestre-section {
             margin: 0;
             border-radius: 0;
@@ -1324,7 +1449,41 @@
                 </div>
             </div>
         </div>
-        
+
+        <!-- ═══════════════ WIDGET STREAK ═══════════════ -->
+        <div class="streak-widget">
+            <div class="streak-main">
+                <div class="streak-flame-block">
+                    <span class="streak-flame">🔥</span>
+                    <span class="streak-count">{{ streak.current_streak }}</span>
+                    <span class="streak-label">jour{{ 's' if streak.current_streak > 1 else '' }} consécutif{{ 's' if streak.current_streak > 1 else '' }}</span>
+                </div>
+                <div class="streak-divider"></div>
+                <div class="streak-objectif">
+                    {% if streak.consulted_today %}
+                        <span class="streak-check">✅</span>
+                        <span class="streak-obj-text"><strong>Objectif du jour atteint !</strong><br><small>Reviens demain pour continuer ta série</small></span>
+                    {% else %}
+                        <span class="streak-check">📖</span>
+                        <span class="streak-obj-text"><strong>Objectif du jour</strong><br><small>Consulte un chapitre pour valider aujourd'hui</small></span>
+                    {% endif %}
+                </div>
+                <div class="streak-divider"></div>
+                <div class="streak-total">
+                    <span class="streak-total-num">{{ streak.total_days }}</span>
+                    <span class="streak-total-label">jours<br>au total</span>
+                </div>
+            </div>
+            {% if streak.badges %}
+            <div class="streak-badges">
+                {% for badge in streak.badges %}
+                <span class="streak-badge" title="{{ badge.label }}">{{ badge.icon }} {{ badge.label }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <!-- ════════════════════════════════════════════ -->
+
         <!-- Bouton de passage en classe supérieure -->
         <div id="passage-classe-container" style="display: flex; justify-content: center; margin: 1rem 0;">
             <button onclick="openPassageModal()" 

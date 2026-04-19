@@ -309,6 +309,42 @@ def record_student_daily_session(db: Session, etudiant_id: int) -> None:
         db.rollback()
         print(f"⚠️ Erreur enregistrement session journalière: {e}")
 
+def calculate_streak(db: Session, etudiant_id: int) -> dict:
+    """Calcule le streak quotidien (jours consécutifs) d'un étudiant"""
+    from datetime import timedelta
+    today = datetime.utcnow().date()
+
+    sessions = db.query(StudentDailySessionDB.date).filter(
+        StudentDailySessionDB.etudiant_id == etudiant_id
+    ).all()
+    session_dates = {s.date for s in sessions}
+
+    consulted_today = today in session_dates
+
+    # Compter les jours consécutifs en remontant depuis aujourd'hui
+    streak = 0
+    check_date = today if consulted_today else today - timedelta(days=1)
+    while check_date in session_dates:
+        streak += 1
+        check_date -= timedelta(days=1)
+
+    # Badges de milestone
+    badges = []
+    total = len(session_dates)
+    if total >= 100:
+        badges.append({"label": "100 jours", "icon": "🏆", "couleur": "#FFD700"})
+    if total >= 30:
+        badges.append({"label": "30 jours", "icon": "🥇", "couleur": "#C0C0C0"})
+    if total >= 7:
+        badges.append({"label": "7 jours", "icon": "🥉", "couleur": "#CD7F32"})
+
+    return {
+        "current_streak": streak,
+        "consulted_today": consulted_today,
+        "total_days": total,
+        "badges": badges,
+    }
+
 def update_online_status(etudiant_id: int) -> None:
     """Met à jour le timestamp de dernière activité d'un étudiant"""
     _online_students[etudiant_id] = datetime.utcnow()
@@ -2124,6 +2160,14 @@ async def dashboard_etudiant(request: Request, db: Session = Depends(get_db)):
             messages_actifs = getattr(_p, 'messages_actifs', True)
             cours_en_ligne_actifs = getattr(_p, 'cours_en_ligne_actifs', True)
 
+    # Enregistrer la session quotidienne et calculer le streak
+    student_id_int = student.get("id")
+    if student_id_int:
+        record_student_daily_session(db, student_id_int)
+        streak_data = calculate_streak(db, student_id_int)
+    else:
+        streak_data = {"current_streak": 0, "consulted_today": False, "total_days": 0, "badges": []}
+
     return templates.TemplateResponse("dashboard_etudiant.html", {
         "request": request,
         "student": student,
@@ -2138,6 +2182,7 @@ async def dashboard_etudiant(request: Request, db: Session = Depends(get_db)):
         "student_universite": student_universite,
         "messages_actifs": messages_actifs,
         "cours_en_ligne_actifs": cours_en_ligne_actifs,
+        "streak": streak_data,
     })
 
 
