@@ -253,7 +253,7 @@
             
             .semestre-header {
                 padding: 0.75rem 1rem !important;
-                font-size: 0.9rem !important;
+                font-size: 1rem !important;
             }
 
             .semestre-body {
@@ -1016,17 +1016,18 @@
         }
         
         .semestre-section {
-            margin: 1.2rem 0;
-            border-radius: 14px;
+            margin: 0;
+            border-radius: 0;
             overflow: hidden;
-            box-shadow: 0 4px 18px rgba(102, 126, 234, 0.18);
-            border: 1px solid rgba(102, 126, 234, 0.15);
+            box-shadow: none;
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
         }
 
         .semestre-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1.05rem 1.5rem;
+            padding: 0.8rem 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1035,9 +1036,9 @@
             user-select: none;
             position: relative;
             transition: filter 0.2s ease;
-            font-size: 1.05rem;
-            font-weight: 700;
-            letter-spacing: 0.4px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
 
         .semestre-header:hover {
@@ -1046,7 +1047,7 @@
 
         .semestre-chevron {
             position: absolute;
-            right: 1.4rem;
+            right: 1.2rem;
             font-size: 0.95rem;
             transition: transform 0.3s ease;
             opacity: 0.9;
