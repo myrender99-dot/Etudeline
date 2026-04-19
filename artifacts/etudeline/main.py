@@ -1283,20 +1283,20 @@ async def dashboard_prof(request: Request, db: Session = Depends(get_db)):
         matiere_nom = chapitre.matiere.nom if chapitre.matiere else "Matière inconnue"
         matiere_id = chapitre.matiere_id
         
-        # Initialize hierarchical structure
+        # Initialize hierarchical structure: Niveau → Semestre → Matière → Chapitres
         if niveau not in hierarchie:
             hierarchie[niveau] = {}
         
-        if matiere_nom not in hierarchie[niveau]:
-            hierarchie[niveau][matiere_nom] = {
+        if semestre not in hierarchie[niveau]:
+            hierarchie[niveau][semestre] = {}
+        
+        if matiere_nom not in hierarchie[niveau][semestre]:
+            hierarchie[niveau][semestre][matiere_nom] = {
                 "matiere_id": matiere_id,
-                "semestres": {}
+                "chapitres": []
             }
         
-        if semestre not in hierarchie[niveau][matiere_nom]["semestres"]:
-            hierarchie[niveau][matiere_nom]["semestres"][semestre] = []
-        
-        hierarchie[niveau][matiere_nom]["semestres"][semestre].append(chapitre)
+        hierarchie[niveau][semestre][matiere_nom]["chapitres"].append(chapitre)
     
     prof = db.query(ProfesseurDB).filter(ProfesseurDB.username == prof_username).first()
     
