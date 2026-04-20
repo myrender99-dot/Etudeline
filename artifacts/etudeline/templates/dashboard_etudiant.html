@@ -1444,23 +1444,6 @@
             </div>
         </div>
 
-        <!-- ═══════════ BOUTON NOTIFICATIONS ═══════════ -->
-        <div id="notif-prompt" style="margin: 0.5rem 0;">
-            <button id="btn-notif"
-                onclick="activerNotifications()"
-                style="width:100%; padding:0.7rem 1rem; background:linear-gradient(135deg,#7C3AED,#667eea); color:white; border:none; border-radius:10px; font-size:0.9rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
-                🔔 Activer les notifications (rappels quotidiens)
-            </button>
-        </div>
-        <script>
-            // Masquer le bouton si la permission est déjà accordée
-            (function(){
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    var el = document.getElementById('notif-prompt');
-                    if (el) el.style.display = 'none';
-                }
-            })();
-        </script>
         <!-- ════════════════════════════════════════════ -->
 
         <!-- ═══════════════ WIDGET STREAK ═══════════════ -->
@@ -3264,5 +3247,164 @@
         return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');
     }
     </script>
+
+<!-- ══════════════ GUIDE NOTIFICATIONS ══════════════ -->
+<div id="notif-guide-overlay" style="
+    display:none;
+    position:fixed; inset:0; z-index:99999;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    align-items:center;
+    justify-content:center;
+    padding:1rem;
+">
+    <div style="
+        background:white;
+        border-radius:20px;
+        max-width:380px;
+        width:100%;
+        overflow:hidden;
+        box-shadow:0 20px 60px rgba(0,0,0,0.3);
+        animation: slideUpGuide 0.35s ease;
+    ">
+        <!-- En-tête violet -->
+        <div style="background:linear-gradient(135deg,#7C3AED,#667eea); padding:1.8rem 1.5rem 1.4rem; text-align:center;">
+            <div style="font-size:3rem; margin-bottom:0.4rem;">🔔</div>
+            <h2 style="color:white; font-size:1.2rem; font-weight:800; margin:0 0 0.3rem;">Active tes notifications</h2>
+            <p style="color:rgba(255,255,255,0.85); font-size:0.85rem; margin:0;">Pour ne jamais rater tes cours</p>
+        </div>
+
+        <!-- Étapes -->
+        <div style="padding:1.4rem 1.5rem;">
+            <div style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.4rem;">
+
+                <div style="display:flex; align-items:flex-start; gap:0.9rem;">
+                    <div style="background:#f3e8ff; border-radius:12px; padding:0.55rem; flex-shrink:0;">
+                        <span style="font-size:1.3rem;">🔥</span>
+                    </div>
+                    <div>
+                        <p style="margin:0; font-weight:700; font-size:0.9rem; color:#1a1a2e;">Garde ta série de jours</p>
+                        <p style="margin:0; font-size:0.78rem; color:#666;">On te rappelle chaque jour si tu n'as pas encore consulté tes cours.</p>
+                    </div>
+                </div>
+
+                <div style="display:flex; align-items:flex-start; gap:0.9rem;">
+                    <div style="background:#f3e8ff; border-radius:12px; padding:0.55rem; flex-shrink:0;">
+                        <span style="font-size:1.3rem;">📚</span>
+                    </div>
+                    <div>
+                        <p style="margin:0; font-weight:700; font-size:0.9rem; color:#1a1a2e;">Nouveaux chapitres en temps réel</p>
+                        <p style="margin:0; font-size:0.78rem; color:#666;">Sois alerté dès que ton prof publie un nouveau cours ou exercice.</p>
+                    </div>
+                </div>
+
+                <div style="display:flex; align-items:flex-start; gap:0.9rem;">
+                    <div style="background:#f3e8ff; border-radius:12px; padding:0.55rem; flex-shrink:0;">
+                        <span style="font-size:1.3rem;">📅</span>
+                    </div>
+                    <div>
+                        <p style="margin:0; font-weight:700; font-size:0.9rem; color:#1a1a2e;">Rappels de cours en ligne</p>
+                        <p style="margin:0; font-size:0.78rem; color:#666;">Reçois une alerte 1h avant chaque cours programmé.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bouton principal -->
+            <button onclick="guideActiverNotifications()" style="
+                width:100%; padding:0.95rem;
+                background:linear-gradient(135deg,#7C3AED,#667eea);
+                color:white; border:none; border-radius:12px;
+                font-size:1rem; font-weight:700; cursor:pointer;
+                box-shadow:0 4px 16px rgba(124,58,237,0.35);
+                margin-bottom:0.7rem;
+                transition:filter 0.2s;
+            " onmouseover="this.style.filter='brightness(0.92)'" onmouseout="this.style.filter='none'">
+                🔔 Activer les notifications maintenant
+            </button>
+
+            <!-- Lien "plus tard" -->
+            <button onclick="fermerGuideNotifications()" style="
+                width:100%; padding:0.6rem;
+                background:none; border:none;
+                color:#999; font-size:0.82rem; cursor:pointer;
+            ">
+                Plus tard
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes slideUpGuide {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+</style>
+
+<script>
+(function() {
+    // Afficher le guide si la permission n'est pas encore accordée
+    function shouldShowGuide() {
+        if (!('Notification' in window)) return false;
+        if (Notification.permission === 'granted') return false;
+        // Ne pas afficher plus d'une fois par session si l'utilisateur a dit "plus tard"
+        if (sessionStorage.getItem('notif_guide_dismissed')) return false;
+        return true;
+    }
+
+    function showGuide() {
+        var overlay = document.getElementById('notif-guide-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+    }
+
+    // Afficher le guide après un délai de 2 secondes pour laisser la page se charger
+    if (shouldShowGuide()) {
+        setTimeout(showGuide, 2000);
+    }
+})();
+
+function fermerGuideNotifications() {
+    var overlay = document.getElementById('notif-guide-overlay');
+    if (overlay) overlay.style.display = 'none';
+    sessionStorage.setItem('notif_guide_dismissed', '1');
+}
+
+async function guideActiverNotifications() {
+    if (!('Notification' in window)) {
+        alert('Votre navigateur ne supporte pas les notifications.');
+        return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+        // Appeler la fonction du sw-register.js
+        if (typeof window.activerNotifications === 'function') {
+            await window.activerNotifications();
+        }
+        // Fermer et afficher confirmation
+        var overlay = document.getElementById('notif-guide-overlay');
+        if (overlay) {
+            overlay.innerHTML = `
+                <div style="background:white;border-radius:20px;max-width:340px;width:100%;padding:2.5rem 1.5rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                    <div style="font-size:3.5rem;margin-bottom:0.8rem;">✅</div>
+                    <h2 style="color:#7C3AED;font-size:1.2rem;font-weight:800;margin:0 0 0.5rem;">Notifications activées !</h2>
+                    <p style="color:#555;font-size:0.88rem;margin:0 0 1.5rem;">Tu recevras désormais des rappels quotidiens et les alertes de nouveaux cours.</p>
+                    <button onclick="document.getElementById('notif-guide-overlay').style.display='none'" style="background:linear-gradient(135deg,#7C3AED,#667eea);color:white;border:none;border-radius:10px;padding:0.8rem 2rem;font-size:0.95rem;font-weight:700;cursor:pointer;">
+                        Parfait 🎉
+                    </button>
+                </div>`;
+        }
+    } else {
+        fermerGuideNotifications();
+        // Afficher un message d'aide
+        setTimeout(function() {
+            alert('Pour activer les notifications plus tard : appuie sur l\'icône 🔒 dans la barre d\'adresse de ton navigateur → Notifications → Autoriser.');
+        }, 300);
+    }
+}
+</script>
+<!-- ═══════════════════════════════════════════════ -->
 </body>
 </html>
