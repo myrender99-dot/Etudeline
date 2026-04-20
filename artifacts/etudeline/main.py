@@ -235,6 +235,15 @@ async def startup_event():
             _db.close()
     except Exception as e:
         print(f"⚠️ Erreur initialisation clés VAPID: {e}")
+
+    # Démarrer le thread de rappels quotidiens (notifications push hors-app)
+    try:
+        t = threading.Thread(target=_daily_reminder_thread, daemon=True, name="DailyReminderThread")
+        t.start()
+        print("✅ Thread rappels quotidiens démarré (envoi à 17h UTC chaque jour)")
+    except Exception as e:
+        print(f"⚠️ Erreur démarrage thread rappels: {e}")
+
 # Configuration from environment variables
 SECRET_KEY = os.getenv("SECRET_KEY", "your-super-secret-key-change-this")
 
@@ -344,6 +353,87 @@ def calculate_streak(db: Session, etudiant_id: int) -> dict:
         "total_days": total,
         "badges": badges,
     }
+
+def send_daily_reminders():
+    """Envoie des push aux étudiants qui n'ont PAS ouvert l'app aujourd'hui"""
+    from database import SessionLocal as _SL
+    db = _SL()
+    try:
+        today = datetime.utcnow().date()
+
+        # IDs des étudiants ayant déjà une session aujourd'hui
+        visited_ids = {
+            r.etudiant_id
+            for r in db.query(StudentDailySessionDB.etudiant_id)
+                        .filter_by(date=today).all()
+        }
+
+        # Abonnements push des étudiants NON connectés aujourd'hui
+        query = db.query(PushSubscriptionDB).filter(
+            PushSubscriptionDB.user_type == "etudiant"
+        )
+        if visited_ids:
+            query = query.filter(~PushSubscriptionDB.user_id.in_(visited_ids))
+        subs = query.all()
+
+        if not subs:
+            print("📬 Rappels quotidiens : aucun étudiant inactif avec push actif")
+            return 0
+
+        payload = {
+            "title": "📚 Étude LINE — Tu nous manques !",
+            "body": "N'oublie pas de consulter tes cours aujourd'hui pour garder ta série 🔥",
+            "icon": "/static/icons/icon-192.png",
+            "url": "/dashboard/etudiant"
+        }
+
+        pub_key, priv_pem = _get_vapid_keys(db)
+        if not pub_key:
+            return 0
+
+        sent = 0
+        dead = []
+        for sub in subs:
+            ok = _send_web_push(
+                {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                payload, priv_pem, pub_key
+            )
+            if ok:
+                sent += 1
+            else:
+                dead.append(sub.id)
+
+        if dead:
+            db.query(PushSubscriptionDB).filter(
+                PushSubscriptionDB.id.in_(dead)
+            ).delete(synchronize_session=False)
+            db.commit()
+
+        print(f"📬 Rappels quotidiens envoyés à {sent}/{len(subs)} étudiants")
+        return sent
+    except Exception as e:
+        print(f"⚠️ Erreur rappels quotidiens: {e}")
+        return 0
+    finally:
+        db.close()
+
+
+def _daily_reminder_thread():
+    """Thread d'arrière-plan : envoie des rappels chaque jour à 17h UTC (≈ 18h Sénégal)"""
+    import time as _time
+    _sent_today = None
+    while True:
+        try:
+            now = datetime.utcnow()
+            today = now.date()
+            # Envoyer entre 17h00 et 17h05 UTC une seule fois par jour
+            if now.hour == 17 and now.minute < 5 and _sent_today != today:
+                _sent_today = today
+                send_daily_reminders()
+        except Exception as e:
+            print(f"⚠️ Thread rappels: {e}")
+        _time.sleep(120)  # vérifier toutes les 2 minutes
+
 
 def update_online_status(etudiant_id: int) -> None:
     """Met à jour le timestamp de dernière activité d'un étudiant"""
@@ -5520,6 +5610,17 @@ async def push_test(request: Request, db: Session = Depends(get_db)):
         "ok": ok_count,
         "echecs": fail_count
     }
+
+
+@app.post("/api/push/send-daily-reminders")
+async def push_send_daily_reminders(request: Request, db: Session = Depends(get_db)):
+    """Admin : envoie manuellement les rappels push à tous les étudiants inactifs aujourd'hui."""
+    role, username, user_data = require_auth(request, db)
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="Réservé aux administrateurs")
+    sent = send_daily_reminders()
+    return {"success": True, "envoyes": sent, "message": f"Rappels envoyés à {sent} étudiant(s) inactif(s) aujourd'hui"}
+
 
 
 # ==================== ROUTES API PASSAGE ÉTUDIANT ====================

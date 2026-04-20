@@ -1444,6 +1444,25 @@
             </div>
         </div>
 
+        <!-- ═══════════ BOUTON NOTIFICATIONS ═══════════ -->
+        <div id="notif-prompt" style="margin: 0.5rem 0;">
+            <button id="btn-notif"
+                onclick="activerNotifications()"
+                style="width:100%; padding:0.7rem 1rem; background:linear-gradient(135deg,#7C3AED,#667eea); color:white; border:none; border-radius:10px; font-size:0.9rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+                🔔 Activer les notifications (rappels quotidiens)
+            </button>
+        </div>
+        <script>
+            // Masquer le bouton si la permission est déjà accordée
+            (function(){
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    var el = document.getElementById('notif-prompt');
+                    if (el) el.style.display = 'none';
+                }
+            })();
+        </script>
+        <!-- ════════════════════════════════════════════ -->
+
         <!-- ═══════════════ WIDGET STREAK ═══════════════ -->
         <div class="streak-widget">
             <div class="streak-main">
