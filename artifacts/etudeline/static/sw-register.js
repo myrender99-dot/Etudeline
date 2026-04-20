@@ -66,7 +66,16 @@ async function requestAndSubscribe(registration) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async function () {
     try {
-      const registration = await navigator.serviceWorker.register('/static/sw.js');
+      // Désinstaller l'ancien SW qui avait la mauvaise portée (/static/)
+      const allRegs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of allRegs) {
+        if (reg.scope && reg.scope.includes('/static')) {
+          await reg.unregister();
+          console.log('🗑️ Ancien service worker /static/ désinstallé');
+        }
+      }
+
+      const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
       console.log('✅ Service Worker enregistré avec succès:', registration.scope);
 
       // Vérifier les mises à jour périodiquement

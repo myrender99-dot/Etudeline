@@ -83,6 +83,15 @@ async def add_security_headers(request: Request, call_next):
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.get("/sw.js", include_in_schema=False)
+async def serve_service_worker():
+    """Sert le service worker depuis la racine avec la portée complète /"""
+    return FileResponse(
+        "static/sw.js",
+        media_type="application/javascript",
+        headers={"Service-Worker-Allowed": "/"}
+    )
+
 def _migrate_documents_etudiants(db: Session):
     """Migration : s'assure que toutes les colonnes de documents_etudiants existent.
     Chaque colonne est ajoutée dans sa propre transaction pour éviter les rollbacks en cascade.
